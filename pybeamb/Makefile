@@ -14,45 +14,46 @@
 # GNU Lesser General Public License for more details.
 # 
 # You should have received a copy of the GNU Lesser General Public License
-# along with RAVE.  If not, see <http://www.gnu.org/licenses/>.
+# along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 # ------------------------------------------------------------------------
 # 
 # beamb make file
 # @file
 # @author Anders Henja (Swedish Meteorological and Hydrological Institute, SMHI)
-# @date 2011-11-10
+# @date 2011-11-14
 ###########################################################################
 -include ../def.mk
 
-# Ropo specific c flags
+# beamb specific c flags
 #
-CFLAGS= $(SHARED_FLAG) $(CCOPTS) $(DEFS) -I. \
-			$(RAVE_INCLUDE_FLAG) $(HLHDF_INCLUDE_FLAG) $(ZLIB_INCDIR) \
-			$(HDF5_INCDIR) $(PROJ_INCLUDE_FLAG)
+CFLAGS= $(SHARED_FLAG) $(CCOPTS) $(DEFS) -I../lib -I. $(PYTHON_INCLUDE_FLAG)\
+			$(NUMPY_INCLUDE_FLAG) $(RAVE_INCLUDE_FLAG) $(RAVE_INCLUDE_FLAG)/python \
+			$(HLHDF_INCLUDE_FLAG) $(ZLIB_INCDIR) $(HDF5_INCDIR) $(PROJ_INCLUDE_FLAG)
 
 # Linker flags
 #
-LDFLAGS= -L. $(RAVE_LIB_FLAG) $(HLHDF_LIBRARY_FLAG) $(ZLIB_LIBDIR) \
+LDFLAGS= -L../lib -L. $(RAVE_LIB_FLAG) $(HLHDF_LIBRARY_FLAG) $(ZLIB_LIBDIR) \
 			$(HDF5_LIBDIR) $(PROJ_LIB_FLAG) 
 
-# We also need to ensure that raves expat requirements are managed
+# We need to ensure that raves expat requirements are managed
 EXPAT_LIBRARY=
 ifeq ($(EXPAT_SUPPRESSED), no)
+CPPFLAGS+= $(EXPAT_INCLUDE_DIR) -DRAVE_XML_SUPPORTED
 CFLAGS+= $(EXPAT_INCLUDE_DIR) -DRAVE_XML_SUPPORTED
 LDFLAGS+= $(EXPAT_LIB_DIR)
 EXPAT_LIBRARY=-lexpat
 endif
 
+LIBRARIES=-lhlhdf -lproj  $(EXPAT_LIBRARY) -lravetransform -lravepyapi -lbeamb
+
 # --------------------------------------------------------------------
 # Fixed definitions
 
-SOURCES= beamblockage.c beamblockagemap.c
-				
-OBJECTS= $(SOURCES:.c=.o)
+BEAMBLOCKAGE_SOURCE= pybeamblockage.c
+BEAMBLOCKAGE_OBJECTS= $(BEAMBLOCKAGE_SOURCE:.c=.o)
+BEAMBLOCKAGE_TARGET= _beamblockage.so
 
-TARGET= libbeamb.so
-
-MAKECDEPEND=$(CC) -MM $(CFLAGS) -MT '$(@F)' -o $(DF).d $<
+MAKECDEPEND=$(CC) -MM $(CFLAGS) -MT '$(@D)/$(@F)' -o $(DF).d $<
 
 DEPDIR=.dep
 DF=$(DEPDIR)/$(*F)
@@ -65,17 +66,17 @@ $(DEPDIR):
 # And the rest of the make file targets
 #
 .PHONY=all
-all:		$(TARGET)
+all:		$(BEAMBLOCKAGE_TARGET)
 
-$(TARGET): $(DEPDIR) $(OBJECTS)
-	$(LDSHARED) -o $@ $(OBJECTS)
+$(BEAMBLOCKAGE_TARGET): $(DEPDIR) $(BEAMBLOCKAGE_OBJECTS) ../lib/libbeamb.so
+	$(LDSHARED) -o $@ $(BEAMBLOCKAGE_OBJECTS) $(LDFLAGS) $(LIBRARIES)
 
 .PHONY=install
 install:
-	@mkdir -p ${prefix}/include/
-	@mkdir -p ${prefix}/lib/
-	@cp -v -f *.h ${prefix}/include/
-	@cp -v -f $(TARGET) ${prefix}/lib/
+	@mkdir -p ${prefix}/share/beamb/pybeamb
+	@cp -v -f $(BEAMBLOCKAGE_TARGET) ${prefix}/share/beamb/pybeamb
+	@cp -v -f *.py ${prefix}/share/beamb/pybeamb
+	@echo "$(prefix)/share/beamb/pybeamb" > "$(SITEPACK_PYTHON)/pybeamb.pth"
 
 .PHONY=clean
 clean:
@@ -84,14 +85,13 @@ clean:
 
 .PHONY=distclean		 
 distclean:	clean
-	@\rm -f $(TARGET)
+	@\rm -f $(BEAMBLOCKAGE_TARGET)
 
 # --------------------------------------------------------------------
 # Rules
 
 # Contains dependency generation as well, so if you are not using
 # gcc, comment out everything until the $(CC) statement.
-
 %.o : %.c
 	@$(MAKECDEPEND); \
 	cp $(DF).d $(DF).P; \
@@ -101,4 +101,4 @@ distclean:	clean
 	$(CC) -c $(CFLAGS) $< -o $@
 
 # NOTE! This ensures that the dependencies are setup at the right time so this should not be moved
--include $(SOURCES:%.c=$(DEPDIR)/%.P)
+-include $(BEAMBLOCKAGE_SOURCE:%.c=$(DEPDIR)/%.P)

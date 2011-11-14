@@ -33,6 +33,7 @@ def.mk:
 build: def.mk
 	$(MAKE) -C lib
 	$(MAKE) -C pybeamb
+	$(MAKE) -C data
 
 .PHONY:install
 install: def.mk
@@ -59,9 +60,9 @@ clean:
 	$(MAKE) -C lib clean
 	$(MAKE) -C pybeamb clean
 	$(MAKE) -C data clean
-	$(MAKE) -C config clean
-	$(MAKE) -C test/pytest clean
-	$(MAKE) -C doxygen clean
+	#$(MAKE) -C config clean
+	#$(MAKE) -C test/pytest clean
+	#$(MAKE) -C doxygen clean
 	
 
 .PHONY:distclean
@@ -69,7 +70,7 @@ distclean:
 	$(MAKE) -C lib distclean
 	$(MAKE) -C pybeamb distclean
 	$(MAKE) -C data distclean
-	$(MAKE) -C doxygen distclean
-	$(MAKE) -C config distclean
-	$(MAKE) -C test/pytest distclean
+	#$(MAKE) -C doxygen distclean
+	#$(MAKE) -C config distclean
+	#$(MAKE) -C test/pytest distclean
 	@\rm -f *~ config.log config.status def.mk

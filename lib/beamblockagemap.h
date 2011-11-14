@@ -17,26 +17,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 ------------------------------------------------------------------------*/
 /**
- * Beam-blockage analysis
+ * Beam-blockage topography map reading functionallity
  * @file
- * @author Lars Norin (Swedish Meteorological and Hydrological Institute, SMHI)
- *
- * @author Anders Henja (SMHI, refactored to work together with rave)
- * @date 2011-11-10
+ * @author Anders Henja (SMHI)
+ * @date 2011-11-14
  */
-#ifndef BEAMBLOCKAGE_H
-#define BEAMBLOCKAGE_H
+#ifndef BEAMBLOCKAGEMAP_H
+#define BEAMBLOCKAGEMAP_H
 #include "rave_object.h"
+#include "rave_field.h"
 
 /**
  * Defines a beam blockage object
  */
-typedef struct _BeamBlockage_t BeamBlockage_t;
+typedef struct _BeamBlockageMap_t BeamBlockageMap_t;
 
 /**
  * Type definition to use when creating a rave object.
  */
-extern RaveCoreObjectType BeamBlockage_TYPE;
+extern RaveCoreObjectType BeamBlockageMap_TYPE;
 
 /**
  * Sets the topo30 directory.
@@ -44,13 +43,22 @@ extern RaveCoreObjectType BeamBlockage_TYPE;
  * @param[in] topodirectory - the topo directory
  * @return 1 on success otherwise 0
  */
-int BeamBlockage_setTopo30Directory(BeamBlockage_t* self, const char* topodirectory);
+int BeamBlockageMap_setTopo30Directory(BeamBlockageMap_t* self, const char* topodirectory);
 
 /**
  * Returns the topo30 directory
  * @param[in] self - self
  * @return the topo30 directory
  */
-const char* BeamBlockage_getTopo30Directory(BeamBlockage_t* self);
+const char* BeamBlockageMap_getTopo30Directory(BeamBlockageMap_t* self);
 
-#endif /* BEAMBLOCKAGE_H */
+/**
+ * Find out which maps are needed to cover given area
+ * @param[in] lat - latitude of radar in radians
+ * @param[in] lon - longitude of radar in radians
+ * @param[in] d - maximum range of radar in meters
+ * @returns flag corresponding to map to be read
+ */
+RaveField_t* BeamBlockageMap_readTopography(BeamBlockageMap_t* self, double lat, double lon, double d);
+
+#endif /* BEAMBLOCKAGEMAP_H */

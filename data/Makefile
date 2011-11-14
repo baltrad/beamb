@@ -24,67 +24,27 @@
 ###########################################################################
 -include ../def.mk
 
-# Ropo specific c flags
-#
-CFLAGS= $(SHARED_FLAG) $(CCOPTS) $(DEFS) -I. \
-			$(RAVE_INCLUDE_FLAG) $(HLHDF_INCLUDE_FLAG) $(ZLIB_INCDIR) \
-			$(HDF5_INCDIR) $(PROJ_INCLUDE_FLAG)
-
-# Linker flags
-#
-LDFLAGS= -L. $(RAVE_LIB_FLAG) $(HLHDF_LIBRARY_FLAG) $(ZLIB_LIBDIR) \
-			$(HDF5_LIBDIR) $(PROJ_LIB_FLAG) 
-
-# We also need to ensure that raves expat requirements are managed
-EXPAT_LIBRARY=
-ifeq ($(EXPAT_SUPPRESSED), no)
-CFLAGS+= $(EXPAT_INCLUDE_DIR) -DRAVE_XML_SUPPORTED
-LDFLAGS+= $(EXPAT_LIB_DIR)
-EXPAT_LIBRARY=-lexpat
-endif
-
-# --------------------------------------------------------------------
-# Fixed definitions
-
-SOURCES= beamblockage.c beamblockagemap.c
-				
-OBJECTS= $(SOURCES:.c=.o)
-
-TARGET= libbeamb.so
-
-MAKECDEPEND=$(CC) -MM $(CFLAGS) -MT '$(@F)' -o $(DF).d $<
-
-DEPDIR=.dep
-DF=$(DEPDIR)/$(*F)
-
-# Ensures that the .dep directory exists
-.PHONY=$(DEPDIR)
-$(DEPDIR):
-	+@[ -d $@ ] || mkdir -p $@
-
 # And the rest of the make file targets
 #
 .PHONY=all
-all:		$(TARGET)
+all: gtopo30
 
-$(TARGET): $(DEPDIR) $(OBJECTS)
-	$(LDSHARED) -o $@ $(OBJECTS)
-
+gtopo30: gtopo30.tgz
+	@tar -xvzf gtopo30.tgz
+	@touch gtopo30
+ 
 .PHONY=install
-install:
-	@mkdir -p ${prefix}/include/
-	@mkdir -p ${prefix}/lib/
-	@cp -v -f *.h ${prefix}/include/
-	@cp -v -f $(TARGET) ${prefix}/lib/
-
+install: gtopo30
+	@mkdir -p ${prefix}/share/beamb/data/gtopo30
+	@cp -f gtopo30/*.* ${prefix}/share/beamb/data/gtopo30/
+		
 .PHONY=clean
 clean:
 	@\rm -f *.o core *~
-	@\rm -fr $(DEPDIR)
 
 .PHONY=distclean		 
 distclean:	clean
-	@\rm -f $(TARGET)
+	@\rm -fr gtopo30
 
 # --------------------------------------------------------------------
 # Rules
