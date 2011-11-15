@@ -27,10 +27,12 @@ import unittest
 
 import _raveio
 import _beamblockage
+import _beamblockagemap
 import os, string
 import _rave
+import math
 
-class PyBeamBlockageTest(unittest.TestCase):
+class PyBeamBlockageMapTest(unittest.TestCase):
   def setUp(self):
     pass    
 
@@ -38,20 +40,30 @@ class PyBeamBlockageTest(unittest.TestCase):
     pass
   
   def testNew(self):
-    a = _beamblockage.new()
-    self.assertNotEqual(-1, string.find(`type(a)`, "BeamBlockageCore"))
+    a = _beamblockagemap.new()
+    self.assertNotEqual(-1, string.find(`type(a)`, "BeamBlockageMapCore"))
 
   def testTopo30(self):
-    a = _beamblockage.new()
+    a = _beamblockagemap.new()
     self.assertEquals(None, a.topo30dir)
     a.topo30dir="/tmp"
     self.assertEquals("/tmp", a.topo30dir)
   
   def testReadTopo30(self):
-    a = _beamblockage.new()
+    a = _beamblockagemap.new()
     a.topo30dir="../../data/gtopo30"
+    result = a.readTopography(60*math.pi/180, 14*math.pi/180.0, 100000)
+    self.assertTrue(result != None)
+    self.assertEquals(6000, result.ysize)
+    self.assertEquals(4800, result.xsize)
     
-  
+  def testReadTopo30_combined(self):
+    a = _beamblockagemap.new()
+    a.topo30dir="../../data/gtopo30"
+    result = a.readTopography(60*math.pi/180, 20*math.pi/180.0, 200000)
+    self.assertTrue(result != None)
+    self.assertEquals(6000, result.ysize)
+    self.assertEquals(9600, result.xsize)
 if __name__ == "__main__":
   #import sys;sys.argv = ['', 'Test.testName']
   unittest.main()

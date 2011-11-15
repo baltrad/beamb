@@ -26,6 +26,7 @@ Test suite for beamb
 import unittest
 
 from PyBeamBlockageTest import *
+from PyBeamBlockageMapTest import *
 
 if __name__ == "__main__":
   unittest.main()
