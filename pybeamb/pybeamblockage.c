@@ -148,6 +148,7 @@ static PyObject* _pybeamblockage_new(PyObject* self, PyObject* args)
  */
 static struct PyMethodDef _pybeamblockage_methods[] =
 {
+  {"topo30dir", NULL},
   {NULL, NULL} /* sentinel */
 };
 
@@ -157,6 +158,15 @@ static struct PyMethodDef _pybeamblockage_methods[] =
 static PyObject* _pybeamblockage_getattr(PyBeamBlockage* self, char* name)
 {
   PyObject* res = NULL;
+
+  if (strcmp("topo30dir", name) == 0) {
+    const char* str = BeamBlockage_getTopo30Directory(self->beamb);
+    if (str != NULL) {
+      return PyString_FromString(str);
+    } else {
+      Py_RETURN_NONE;
+    }
+  }
 
   res = Py_FindMethod(_pybeamblockage_methods, (PyObject*) self, name);
   if (res)
@@ -177,7 +187,19 @@ static int _pybeamblockage_setattr(PyBeamBlockage* self, char* name, PyObject* v
     goto done;
   }
 
-  raiseException_gotoTag(done, PyExc_AttributeError, name);
+  if (strcmp("topo30dir", name) == 0) {
+    if (PyString_Check(val)) {
+      if (!BeamBlockage_setTopo30Directory(self->beamb, PyString_AsString(val))) {
+        raiseException_gotoTag(done, PyExc_ValueError, "topo30dir must be a string or None");
+      }
+    } else if (val == Py_None) {
+      BeamBlockage_setTopo30Directory(self->beamb, NULL);
+    } else {
+      raiseException_gotoTag(done, PyExc_ValueError, "topo30dir must be a string or None");
+    }
+  } else {
+    raiseException_gotoTag(done, PyExc_AttributeError, name);
+  }
 
   result = 0;
 done:

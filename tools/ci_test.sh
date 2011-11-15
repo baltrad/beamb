@@ -14,5 +14,5 @@
 SCRFILE=`python -c "import os;print os.path.abspath(\"$0\")"`
 SCRIPTPATH=`dirname "$SCRFILE"`
 
-"$SCRIPTPATH/run_python_script.sh" "${SCRIPTPATH}/../test/pytest/RopoXmlTestSuite.py" "${SCRIPTPATH}/../test/pytest"
+"$SCRIPTPATH/run_python_script.sh" "${SCRIPTPATH}/../test/pytest/BeambXmlTestSuite.py" "${SCRIPTPATH}/../test/pytest"
 exit $?

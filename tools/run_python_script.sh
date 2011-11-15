@@ -36,9 +36,9 @@ HLHDF_LDPATH=`fgrep HLHDF_LIB_DIR "${DEF_MK_FILE}" | sed -e"s/\(HLHDF_LIB_DIR=[ 
 
 BNAME=`python -c 'from distutils import util; import sys; print "lib.%s-%s" % (util.get_platform(), sys.version[0:3])'`
 
-RBPATH="${SCRIPTPATH}/../pyropo"
+RBPATH="${SCRIPTPATH}/../pybeamb"
 RAVE_LDPATH="${RAVE_ROOT_DIR}/lib"
-RACK_LDPATH="${SCRIPTPATH}/../ropo"
+RACK_LDPATH="${SCRIPTPATH}/../lib"
 XRUNNERPATH="${SCRIPTPATH}/../test/lib"
 
 # Special hack for mac osx.
@@ -66,12 +66,12 @@ else
   fi
 fi
 
-export RACKPATH="${RAVE_ROOT_DIR}/Lib:${HLHDF_LDPATH}:${RBPATH}:${XRUNNERPATH}"
+export BEAMBPATH="${RAVE_ROOT_DIR}/Lib:${HLHDF_LDPATH}:${RBPATH}:${XRUNNERPATH}"
 
 if test "${PYTHONPATH}" != ""; then
-  export PYTHONPATH="${RACKPATH}:${PYTHONPATH}"
+  export PYTHONPATH="${BEAMBPATH}:${PYTHONPATH}"
 else
-  export PYTHONPATH="${RACKPATH}"
+  export PYTHONPATH="${BEAMBPATH}"
 fi
 
 # Syntax: run_python_script <pyscript> [<dir> - if script should be executed in a particular directory]
