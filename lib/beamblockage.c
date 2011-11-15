@@ -100,6 +100,15 @@ const char* BeamBlockage_getTopo30Directory(BeamBlockage_t* self)
   return (const char*)BeamBlockageMap_getTopo30Directory(self->mapper);
 }
 
+RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan)
+{
+  RaveField_t *field = NULL, *result = NULL;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+
+}
+
 /*@} End of Interface functions */
 
 RaveCoreObjectType BeamBlockage_TYPE = {

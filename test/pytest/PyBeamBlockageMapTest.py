@@ -64,6 +64,7 @@ class PyBeamBlockageMapTest(unittest.TestCase):
     self.assertTrue(result != None)
     self.assertEquals(6000, result.ysize)
     self.assertEquals(9600, result.xsize)
+  
 if __name__ == "__main__":
   #import sys;sys.argv = ['', 'Test.testName']
   unittest.main()

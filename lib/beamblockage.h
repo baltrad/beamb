@@ -27,6 +27,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef BEAMBLOCKAGE_H
 #define BEAMBLOCKAGE_H
 #include "rave_object.h"
+#include "rave_field.h"
 
 /**
  * Defines a beam blockage object
@@ -52,5 +53,13 @@ int BeamBlockage_setTopo30Directory(BeamBlockage_t* self, const char* topodirect
  * @return the topo30 directory
  */
 const char* BeamBlockage_getTopo30Directory(BeamBlockage_t* self);
+
+/**
+ * Gets the blockage for the provided scan.
+ * @param[in] self - self
+ * @param[in] scan - the scan to check blockage
+ * @return the beam blockage field
+ */
+RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan);
 
 #endif /* BEAMBLOCKAGE_H */
