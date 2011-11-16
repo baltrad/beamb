@@ -173,6 +173,18 @@ int BBTopography_createData(BBTopograhy_t* self, long ncols, long nrows, RaveDat
   return RaveData2D_createData(self->data, ncols, nrows, type);
 }
 
+int BBTopography_setData(BBTopograhy_t* self, long ncols, long nrows, void* data, RaveDataType type)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return RaveData2D_setData(self->data, ncols, nrows, data, type);
+}
+
+void* BBTopography_getData(BBTopograhy_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return RaveData2D_getData(self->data);
+}
+
 int BBTopography_setDatafield(BBTopograhy_t* self, RaveData2D_t* datafield)
 {
   int result = 0;
@@ -214,6 +226,12 @@ long BBTopography_getNrows(BBTopograhy_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return RaveData2D_getYsize(self->data);
+}
+
+RaveDataType BBTopography_getDataType(BBTopograhy_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return RaveData2D_getType(self->data);
 }
 
 int BBTopography_getValue(BBTopograhy_t* self, long col, long row, double* v)

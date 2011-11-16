@@ -118,6 +118,23 @@ double BBTopography_getUlymap(BBTopograhy_t* self);
 int BBTopography_createData(BBTopograhy_t* self, long ncols, long nrows, RaveDataType type);
 
 /**
+ * Sets the data in the topography field.
+ * @param[in] self - self
+ * @param[in] ncols - the column count
+ * @param[in] nrows - the row count
+ * @param[in] data - the data
+ * @param[in] type - the data type
+ * @returns 1 on success otherwise 0
+ */
+int BBTopography_setData(BBTopograhy_t* self, long ncols, long nrows, void* data, RaveDataType type);
+/**
+ * Returns a pointer to the internal data storage.
+ * @param[in] self - self
+ * @return the internal data pointer (NOTE! Do not release this pointer)
+ */
+void* BBTopography_getData(BBTopograhy_t* self);
+
+/**
  * Sets the rave data 2d field. This will create a clone from the provided data field.
  * @param[in] self - self
  * @param[in] datafield - the data field to use (MAY NOT BE NULL)
@@ -147,6 +164,13 @@ long BBTopography_getNcols(BBTopograhy_t* self);
  * @return the number of rows
  */
 long BBTopography_getNrows(BBTopograhy_t* self);
+
+/**
+ * Returns the data type
+ * @param[in] self - self
+ * @return the data type
+ */
+RaveDataType BBTopography_getDataType(BBTopograhy_t* self);
 
 /**
  * Returns the value at the specified index.

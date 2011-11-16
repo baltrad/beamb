@@ -32,7 +32,9 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "pyrave_debug.h"
 #include "rave_alloc.h"
-
+#include <arrayobject.h>
+#include "raveutil.h"
+#include "rave.h"
 /**
  * Debug this module
  */
@@ -172,6 +174,82 @@ static PyObject* _pybbtopography_setValue(PyBBTopograhy* self, PyObject* args)
   Py_RETURN_NONE;
 }
 
+static PyObject* _pybbtopography_setData(PyBBTopograhy* self, PyObject* args)
+{
+  PyObject* inarray = NULL;
+  PyArrayObject* arraydata = NULL;
+  RaveDataType datatype = RaveDataType_UNDEFINED;
+  long ncols = 0;
+  long nrows = 0;
+  unsigned char* data = NULL;
+
+  if (!PyArg_ParseTuple(args, "O", &inarray)) {
+    return NULL;
+  }
+
+  if (!PyArray_Check(inarray)) {
+    raiseException_returnNULL(PyExc_TypeError, "Data must be of arrayobject type")
+  }
+
+  arraydata = (PyArrayObject*)inarray;
+
+  if (PyArray_NDIM(arraydata) != 2) {
+    raiseException_returnNULL(PyExc_ValueError, "A cartesian product must be of rank 2");
+  }
+
+  datatype = translate_pyarraytype_to_ravetype(PyArray_TYPE(arraydata));
+
+  if (PyArray_ITEMSIZE(arraydata) != get_ravetype_size(datatype)) {
+    raiseException_returnNULL(PyExc_TypeError, "numpy and rave does not have same data sizes");
+  }
+
+  ncols  = PyArray_DIM(arraydata, 1);
+  nrows  = PyArray_DIM(arraydata, 0);
+  data   = PyArray_DATA(arraydata);
+
+  if (!BBTopography_setData(self->topo, ncols, nrows, data, datatype)) {
+    raiseException_returnNULL(PyExc_MemoryError, "Could not allocate memory");
+  }
+
+  Py_RETURN_NONE;
+}
+
+static PyObject* _pybbtopography_getData(PyBBTopograhy* self, PyObject* args)
+{
+  long ncols = 0, nrows = 0;
+  RaveDataType type = RaveDataType_UNDEFINED;
+  PyObject* result = NULL;
+  npy_intp dims[2] = {0,0};
+  int arrtype = 0;
+  void* data = NULL;
+
+  ncols = BBTopography_getNcols(self->topo);
+  nrows = BBTopography_getNrows(self->topo);
+  type = BBTopography_getDataType(self->topo);
+  data = BBTopography_getData(self->topo);
+
+  dims[1] = (npy_intp)ncols;
+  dims[0] = (npy_intp)nrows;
+  arrtype = translate_ravetype_to_pyarraytype(type);
+
+  if (data == NULL) {
+    raiseException_returnNULL(PyExc_IOError, "topography does not have any data");
+  }
+
+  if (arrtype == PyArray_NOTYPE) {
+    raiseException_returnNULL(PyExc_IOError, "Could not translate data type");
+  }
+  result = PyArray_SimpleNew(2, dims, arrtype);
+  if (result == NULL) {
+    raiseException_returnNULL(PyExc_MemoryError, "Could not create resulting array");
+  }
+  if (result != NULL) {
+    int nbytes = ncols*nrows*PyArray_ITEMSIZE(result);
+    memcpy(((PyArrayObject*)result)->data, (unsigned char*)BBTopography_getData(self->topo), nbytes);
+  }
+  return result;
+}
+
 /**
  * All methods a topography instance can have
  */
@@ -183,9 +261,11 @@ static struct PyMethodDef _pybbtopography_methods[] =
   {"xdim", NULL},
   {"ydim", NULL},
   {"ncols", NULL, 1},
-  {"nbins", NULL, 1},
+  {"nrows", NULL, 1},
   {"getValue", (PyCFunction)_pybbtopography_getValue, 1},
   {"setValue", (PyCFunction)_pybbtopography_setValue, 1},
+  {"setData", (PyCFunction)_pybbtopography_setData, 1},
+  {"getData", (PyCFunction)_pybbtopography_getData, 1},
   {NULL, NULL} /* sentinel */
 };
 
@@ -343,6 +423,8 @@ init_bbtopography(void)
   if (ErrorObject == NULL || PyDict_SetItemString(dictionary, "error", ErrorObject) != 0) {
     Py_FatalError("Can't define _bbtopography.error");
   }
+  import_array();
+
   PYRAVE_DEBUG_INITIALIZE;
 }
 /*@} End of Module setup */
