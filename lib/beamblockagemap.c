@@ -311,7 +311,22 @@ RaveField_t* BeamBlockageMap_readTopography(BeamBlockageMap_t* self, double lat,
     RAVE_OBJECT_RELEASE(field2);
     RAVE_OBJECT_RELEASE(field3);
   }
-
+  /*
+  BYTEORDER      M
+  LAYOUT       BIL
+  NROWS         6000
+  NCOLS         4800
+  NBANDS        1
+  NBITS         16
+  BANDROWBYTES         9600
+  TOTALROWBYTES        9600
+  BANDGAPBYTES         0
+  NODATA        -9999
+  ULXMAP        -19.99583333333333
+  ULYMAP        89.99583333333334
+  XDIM          0.00833333333333
+  YDIM          0.00833333333333
+  */
   if (field != NULL) {
     // TODO: Add attributes to field
   }

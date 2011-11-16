@@ -76,6 +76,7 @@ static int BeamBlockage_copyconstructor(RaveCoreObject* obj, RaveCoreObject* src
   BeamBlockage_t* this = (BeamBlockage_t*)obj;
   BeamBlockage_t* src = (BeamBlockage_t*)srcobj;
   this->mapper = RAVE_OBJECT_CLONE(src->mapper);
+
   if (this->mapper == NULL) {
     goto error;
   }
@@ -83,6 +84,50 @@ static int BeamBlockage_copyconstructor(RaveCoreObject* obj, RaveCoreObject* src
 error:
   RAVE_OBJECT_RELEASE(this->mapper);
   return 0;
+}
+
+/**
+ * Get range from radar, projected on surface
+ * @param[in] lat0 - latitude in radians
+ * @param[in] alt0 - radar altitude in meters
+ * @param[in] el - elevation of radar beam in radians
+ * @param[in] r_len - length of vector range
+ */
+static double* BeamBlockageInternal_computeGroundRange(BeamBlockage_t* self, PolarScan_t* scan)
+{
+  double *result = NULL, *ranges = NULL;
+  double elangle = 0.0;
+  long nbins = 0;
+  long i = 0;
+  double rscale = 0.0;
+
+  PolarNavigator_t* navigator = NULL;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  RAVE_ASSERT((scan != NULL), "scan == NULL");
+
+  navigator = PolarScan_getNavigator(scan);
+  nbins = PolarScan_getNbins(scan);
+  rscale = PolarScan_getRscale(scan);
+
+  ranges = RAVE_MALLOC(sizeof(double) * nbins);
+  if (ranges == NULL) {
+    RAVE_CRITICAL0("Failed to allocate memory");
+    goto done;
+  }
+
+  for (i = 0; i < nbins; i++) {
+    double d = 0.0, h = 0.0;
+    PolarNavigator_reToDh(navigator, (rscale * ((double)i + 0.5)), elangle, &d, &h);
+    ranges[i] = d;
+  }
+
+  result = ranges;
+  ranges = NULL; // Drop responsibility
+done:
+  RAVE_OBJECT_RELEASE(navigator);
+  RAVE_FREE(ranges);
+  return result;
 }
 
 /*@} End of Private functions */
@@ -103,10 +148,21 @@ const char* BeamBlockage_getTopo30Directory(BeamBlockage_t* self)
 RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan)
 {
   RaveField_t *field = NULL, *result = NULL;
+  double* ground_range = NULL;
 
   RAVE_ASSERT((self != NULL), "self == NULL");
+  if (scan == NULL) {
+    return NULL;
+  }
+  ground_range = BeamBlockageInternal_computeGroundRange(self, scan);
+  if (ground_range == NULL) {
+    goto done;
+  }
 
-
+  result = RAVE_OBJECT_COPY(field);
+done:
+  RAVE_OBJECT_RELEASE(field);
+  return result;
 }
 
 /*@} End of Interface functions */

@@ -57,6 +57,10 @@ BEAMBLOCKAGEMAP_SOURCE= pybeamblockagemap.c
 BEAMBLOCKAGEMAP_OBJECTS= $(BEAMBLOCKAGEMAP_SOURCE:.c=.o)
 BEAMBLOCKAGEMAP_TARGET= _beamblockagemap.so
 
+BBTOPOGRAPHY_SOURCE= pybbtopography.c
+BBTOPOGRAPHY_OBJECTS= $(BBTOPOGRAPHY_SOURCE:.c=.o)
+BBTOPOGRAPHY_TARGET= _bbtopography.so
+
 MAKECDEPEND=$(CC) -MM $(CFLAGS) -MT '$(@D)/$(@F)' -o $(DF).d $<
 
 DEPDIR=.dep
@@ -70,7 +74,7 @@ $(DEPDIR):
 # And the rest of the make file targets
 #
 .PHONY=all
-all:		$(BEAMBLOCKAGE_TARGET) $(BEAMBLOCKAGEMAP_TARGET)
+all:		$(BEAMBLOCKAGE_TARGET) $(BEAMBLOCKAGEMAP_TARGET) $(BBTOPOGRAPHY_TARGET)
 
 $(BEAMBLOCKAGE_TARGET): $(DEPDIR) $(BEAMBLOCKAGE_OBJECTS) ../lib/libbeamb.so
 	$(LDSHARED) -o $@ $(BEAMBLOCKAGE_OBJECTS) $(LDFLAGS) $(LIBRARIES)
@@ -78,11 +82,15 @@ $(BEAMBLOCKAGE_TARGET): $(DEPDIR) $(BEAMBLOCKAGE_OBJECTS) ../lib/libbeamb.so
 $(BEAMBLOCKAGEMAP_TARGET): $(DEPDIR) $(BEAMBLOCKAGEMAP_OBJECTS) ../lib/libbeamb.so
 	$(LDSHARED) -o $@ $(BEAMBLOCKAGEMAP_OBJECTS) $(LDFLAGS) $(LIBRARIES)
 
+$(BBTOPOGRAPHY_TARGET): $(DEPDIR) $(BBTOPOGRAPHY_OBJECTS) ../lib/libbeamb.so
+	$(LDSHARED) -o $@ $(BBTOPOGRAPHY_OBJECTS) $(LDFLAGS) $(LIBRARIES)
+	
 .PHONY=install
 install:
 	@mkdir -p ${prefix}/share/beamb/pybeamb
 	@cp -v -f $(BEAMBLOCKAGE_TARGET) ${prefix}/share/beamb/pybeamb
 	@cp -v -f $(BEAMBLOCKAGEMAP_TARGET) ${prefix}/share/beamb/pybeamb
+	@cp -v -f $(BBTOPOGRAPHY_TARGET) ${prefix}/share/beamb/pybeamb
 	@cp -v -f *.py ${prefix}/share/beamb/pybeamb
 	@echo "$(prefix)/share/beamb/pybeamb" > "$(SITEPACK_PYTHON)/pybeamb.pth"
 
@@ -93,7 +101,7 @@ clean:
 
 .PHONY=distclean		 
 distclean:	clean
-	@\rm -f $(BEAMBLOCKAGE_TARGET) $(BEAMBLOCKAGEMAP_TARGET)
+	@\rm -f $(BEAMBLOCKAGE_TARGET) $(BEAMBLOCKAGEMAP_TARGET) $(BBTOPOGRAPHY_TARGET)
 
 # --------------------------------------------------------------------
 # Rules
@@ -111,3 +119,4 @@ distclean:	clean
 # NOTE! This ensures that the dependencies are setup at the right time so this should not be moved
 -include $(BEAMBLOCKAGE_SOURCE:%.c=$(DEPDIR)/%.P)
 -include $(BEAMBLOCKAGEMAP_SOURCE:%.c=$(DEPDIR)/%.P)
+-include $(BBTOPOGRAPHY_SOURCE:%.c=$(DEPDIR)/%.P)

@@ -28,6 +28,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 #define BEAMBLOCKAGE_H
 #include "rave_object.h"
 #include "rave_field.h"
+#include "polarscan.h"
 
 /**
  * Defines a beam blockage object

@@ -17,7 +17,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 ------------------------------------------------------------------------*/
 
-Test suite for beamb
+BeamBlockage tests
 
 @file
 @author Anders Henja (Swedish Meteorological and Hydrological Institute, SMHI)
@@ -25,10 +25,23 @@ Test suite for beamb
 '''
 import unittest
 
-from PyBeamBlockageTest import *
-from PyBeamBlockageMapTest import *
-from PyBBTopographyTest import *
+import _raveio
+import _bbtopography
+import os, string
+import _rave
 
+class PyBBTopographyTest(unittest.TestCase):
+  def setUp(self):
+    pass    
+
+  def tearDown(self):
+    pass
+  
+  def testNew(self):
+    a = _bbtopography.new()
+    self.assertNotEqual(-1, string.find(`type(a)`, "BBTopographyCore"))
+    
+  
 if __name__ == "__main__":
+  #import sys;sys.argv = ['', 'Test.testName']
   unittest.main()
-

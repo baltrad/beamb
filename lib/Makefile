@@ -46,7 +46,7 @@ endif
 # --------------------------------------------------------------------
 # Fixed definitions
 
-SOURCES= beamblockage.c beamblockagemap.c
+SOURCES= beamblockage.c beamblockagemap.c bbtopography.c
 				
 OBJECTS= $(SOURCES:.c=.o)
 
