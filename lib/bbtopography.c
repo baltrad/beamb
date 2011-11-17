@@ -284,6 +284,50 @@ BBTopography_t* BBTopography_concatX(BBTopography_t* self, BBTopography_t* other
   return result;
 }
 
+int BBTopography_getLonLatFields(BBTopography_t* self, PolarScan_t* scan, RaveData2D_t** lon, RaveData2D_t** lat)
+{
+  int result = 0;
+  long nrays = 0, nbins = 0;
+  long ri = 0, bi = 0;
+  double elangle = 0.0;
+  RaveData2D_t *olon = NULL, *olat = NULL;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  RAVE_ASSERT((lon != NULL), "lon == NULL");
+  RAVE_ASSERT((lat != NULL), "lat == NULL");
+
+  if (scan == NULL) {
+    goto done;
+  }
+
+  nrays = PolarScan_getNrays(scan);
+  nbins = PolarScan_getNbins(scan);
+  elangle = PolarScan_getElangle(scan);
+
+  olon = RAVE_OBJECT_NEW(&RaveData2D_TYPE);
+  olat = RAVE_OBJECT_NEW(&RaveData2D_TYPE);
+
+  if (olon == NULL || olat == NULL) {
+    goto done;
+  }
+
+  if (!RaveData2D_createData(olon, nbins, nrays, RaveDataType_DOUBLE) ||
+      !RaveData2D_createData(olat, nbins, nrays, RaveDataType_DOUBLE)) {
+    goto done;
+  }
+
+  *lat = RAVE_OBJECT_COPY(olat);
+  *lon = RAVE_OBJECT_COPY(olon);
+
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(olon);
+  RAVE_OBJECT_RELEASE(olat);
+
+  return result;
+}
+
 /*@} End of Interface functions */
 
 RaveCoreObjectType BBTopography_TYPE = {

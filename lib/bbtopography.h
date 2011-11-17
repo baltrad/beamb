@@ -26,6 +26,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 #define BBTOPOGRAPHY_H
 #include "rave_object.h"
 #include "rave_data2d.h"
+#include "polarscan.h"
 
 /**
  * Defines a beam blockage object
@@ -202,5 +203,7 @@ int BBTopography_setValue(BBTopography_t* self, long col, long row, double value
  * @returns the concatenated field on success otherwise NULL
  */
 BBTopography_t* BBTopography_concatX(BBTopography_t* self, BBTopography_t* other);
+
+int BBTopography_getLonLatFields(BBTopography_t* self, PolarScan_t* scan, RaveData2D_t** lon, RaveData2D_t** lat);
 
 #endif /* BBTOPOGRAPHY_H */
