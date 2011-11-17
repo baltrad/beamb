@@ -66,8 +66,8 @@ static PyObject *ErrorObject;
  * @param[in] beamb - the python beam blockage instance
  * @returns the native BeamBlockage_t instance.
  */
-static BBTopograhy_t*
-PyBBTopograhy_GetNative(PyBBTopograhy* topo)
+static BBTopography_t*
+PyBBTopography_GetNative(PyBBTopography* topo)
 {
   RAVE_ASSERT((topo != NULL), "topo == NULL");
   return RAVE_OBJECT_COPY(topo->topo);
@@ -79,13 +79,13 @@ PyBBTopograhy_GetNative(PyBBTopograhy* topo)
  * @param[in] p - the native object (or NULL)
  * @returns the python object.
  */
-static PyBBTopograhy* PyBBTopograhy_New(BBTopograhy_t* p)
+static PyBBTopography* PyBBTopography_New(BBTopography_t* p)
 {
-  PyBBTopograhy* result = NULL;
-  BBTopograhy_t* cp = NULL;
+  PyBBTopography* result = NULL;
+  BBTopography_t* cp = NULL;
 
   if (p == NULL) {
-    cp = RAVE_OBJECT_NEW(&BBTopograhy_TYPE);
+    cp = RAVE_OBJECT_NEW(&BBTopography_TYPE);
     if (cp == NULL) {
       RAVE_CRITICAL0("Failed to allocate memory for topography.");
       raiseException_returnNULL(PyExc_MemoryError, "Failed to allocate memory for topography.");
@@ -99,13 +99,13 @@ static PyBBTopograhy* PyBBTopograhy_New(BBTopograhy_t* p)
   }
 
   if (result == NULL) {
-    result = PyObject_NEW(PyBBTopograhy, &PyBBTopograhy_Type);
+    result = PyObject_NEW(PyBBTopography, &PyBBTopography_Type);
     if (result != NULL) {
       PYRAVE_DEBUG_OBJECT_CREATED;
       result->topo = RAVE_OBJECT_COPY(cp);
       RAVE_OBJECT_BIND(result->topo, result);
     } else {
-      RAVE_CRITICAL0("Failed to create PyBBTopograhy instance");
+      RAVE_CRITICAL0("Failed to create PyBBTopography instance");
       raiseException_gotoTag(done, PyExc_MemoryError, "Failed to allocate memory for topography.");
     }
   }
@@ -118,7 +118,7 @@ done:
  * Deallocates the object
  * @param[in] obj the object to deallocate.
  */
-static void _pybbtopography_dealloc(PyBBTopograhy* obj)
+static void _pybbtopography_dealloc(PyBBTopography* obj)
 {
   /*Nothing yet*/
   if (obj == NULL) {
@@ -141,10 +141,10 @@ static PyObject* _pybbtopography_new(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "")) {
     return NULL;
   }
-  return (PyObject*)PyBBTopograhy_New(NULL);
+  return (PyObject*)PyBBTopography_New(NULL);
 }
 
-static PyObject* _pybbtopography_getValue(PyBBTopograhy* self, PyObject* args)
+static PyObject* _pybbtopography_getValue(PyBBTopography* self, PyObject* args)
 {
   double value = 0.0L;
   long col = 0, row = 0;
@@ -159,7 +159,7 @@ static PyObject* _pybbtopography_getValue(PyBBTopograhy* self, PyObject* args)
   return Py_BuildValue("(id)", result, value);
 }
 
-static PyObject* _pybbtopography_setValue(PyBBTopograhy* self, PyObject* args)
+static PyObject* _pybbtopography_setValue(PyBBTopography* self, PyObject* args)
 {
   long col = 0, row = 0;
   double value = 0.0;
@@ -174,7 +174,7 @@ static PyObject* _pybbtopography_setValue(PyBBTopograhy* self, PyObject* args)
   Py_RETURN_NONE;
 }
 
-static PyObject* _pybbtopography_setData(PyBBTopograhy* self, PyObject* args)
+static PyObject* _pybbtopography_setData(PyBBTopography* self, PyObject* args)
 {
   PyObject* inarray = NULL;
   PyArrayObject* arraydata = NULL;
@@ -214,7 +214,7 @@ static PyObject* _pybbtopography_setData(PyBBTopograhy* self, PyObject* args)
   Py_RETURN_NONE;
 }
 
-static PyObject* _pybbtopography_getData(PyBBTopograhy* self, PyObject* args)
+static PyObject* _pybbtopography_getData(PyBBTopography* self, PyObject* args)
 {
   long ncols = 0, nrows = 0;
   RaveDataType type = RaveDataType_UNDEFINED;
@@ -251,6 +251,34 @@ static PyObject* _pybbtopography_getData(PyBBTopograhy* self, PyObject* args)
 }
 
 /**
+ * Concatenates two fields x-wise.
+ * @param[in] self - self
+ * @param[in] args - the other rave field object
+ * @return a topography object on success otherwise NULL
+ */
+static PyObject* _pybbtopography_concatx(PyBBTopography* self, PyObject* args)
+{
+  PyObject* result = NULL;
+  PyObject* pyin = NULL;
+  BBTopography_t *field = NULL;
+  if (!PyArg_ParseTuple(args, "O", &pyin)) {
+    return NULL;
+  }
+  if (!PyBBTopography_Check(pyin)) {
+    raiseException_returnNULL(PyExc_ValueError, "Argument must be another topography field");
+  }
+  field = BBTopography_concatX(self->topo, ((PyBBTopography*)pyin)->topo);
+  if (field == NULL) {
+    raiseException_gotoTag(done, PyExc_ValueError, "Failed to concatenate fields");
+  }
+
+  result = (PyObject*)PyBBTopography_New(field);
+done:
+  RAVE_OBJECT_RELEASE(field);
+  return result;
+}
+
+/**
  * All methods a topography instance can have
  */
 static struct PyMethodDef _pybbtopography_methods[] =
@@ -266,13 +294,14 @@ static struct PyMethodDef _pybbtopography_methods[] =
   {"setValue", (PyCFunction)_pybbtopography_setValue, 1},
   {"setData", (PyCFunction)_pybbtopography_setData, 1},
   {"getData", (PyCFunction)_pybbtopography_getData, 1},
+  {"concatx", (PyCFunction)_pybbtopography_concatx, 1},
   {NULL, NULL} /* sentinel */
 };
 
 /**
  * Returns the specified attribute in the beam blockage
  */
-static PyObject* _pybbtopography_getattr(PyBBTopograhy* self, char* name)
+static PyObject* _pybbtopography_getattr(PyBBTopography* self, char* name)
 {
   PyObject* res = NULL;
   if (strcmp("nodata", name) == 0) {
@@ -303,7 +332,7 @@ static PyObject* _pybbtopography_getattr(PyBBTopograhy* self, char* name)
 /**
  * Returns the specified attribute in the polar volume
  */
-static int _pybbtopography_setattr(PyBBTopograhy* self, char* name, PyObject* val)
+static int _pybbtopography_setattr(PyBBTopography* self, char* name, PyObject* val)
 {
   int result = -1;
   if (name == NULL) {
@@ -365,11 +394,11 @@ done:
 /// Type definitions
 /// --------------------------------------------------------------------
 /*@{ Type definitions */
-PyTypeObject PyBBTopograhy_Type =
+PyTypeObject PyBBTopography_Type =
 {
   PyObject_HEAD_INIT(NULL)0, /*ob_size*/
   "BBTopographyCore", /*tp_name*/
-  sizeof(PyBBTopograhy), /*tp_size*/
+  sizeof(PyBBTopography), /*tp_size*/
   0, /*tp_itemsize*/
   /* methods */
   (destructor)_pybbtopography_dealloc, /*tp_dealloc*/
@@ -399,19 +428,19 @@ PyMODINIT_FUNC
 init_bbtopography(void)
 {
   PyObject *module=NULL,*dictionary=NULL;
-  static void *PyBBTopograhy_API[PyBBTopograhy_API_pointers];
+  static void *PyBBTopography_API[PyBBTopography_API_pointers];
   PyObject *c_api_object = NULL;
-  PyBBTopograhy_Type.ob_type = &PyType_Type;
+  PyBBTopography_Type.ob_type = &PyType_Type;
 
   module = Py_InitModule("_bbtopography", functions);
   if (module == NULL) {
     return;
   }
-  PyBBTopograhy_API[PyBBTopograhy_Type_NUM] = (void*)&PyBBTopograhy_Type;
-  PyBBTopograhy_API[PyBBTopograhy_GetNative_NUM] = (void *)PyBBTopograhy_GetNative;
-  PyBBTopograhy_API[PyBBTopograhy_New_NUM] = (void*)PyBBTopograhy_New;
+  PyBBTopography_API[PyBBTopography_Type_NUM] = (void*)&PyBBTopography_Type;
+  PyBBTopography_API[PyBBTopography_GetNative_NUM] = (void *)PyBBTopography_GetNative;
+  PyBBTopography_API[PyBBTopography_New_NUM] = (void*)PyBBTopography_New;
 
-  c_api_object = PyCObject_FromVoidPtr((void *)PyBBTopograhy_API, NULL);
+  c_api_object = PyCObject_FromVoidPtr((void *)PyBBTopography_API, NULL);
 
   if (c_api_object != NULL) {
     PyModule_AddObject(module, "_C_API", c_api_object);

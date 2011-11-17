@@ -32,63 +32,63 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
  */
 typedef struct {
    PyObject_HEAD /*Always have to be on top*/
-   BBTopograhy_t* topo;  /**< the native object */
-} PyBBTopograhy;
+   BBTopography_t* topo;  /**< the native object */
+} PyBBTopography;
 
-#define PyBBTopograhy_Type_NUM 0                              /**< index of type */
+#define PyBBTopography_Type_NUM 0                              /**< index of type */
 
-#define PyBBTopograhy_GetNative_NUM 1                         /**< index of GetNative*/
-#define PyBBTopograhy_GetNative_RETURN BBTopograhy_t*         /**< return type for GetNative */
-#define PyBBTopograhy_GetNative_PROTO (PyBBTopograhy*)        /**< arguments for GetNative */
+#define PyBBTopography_GetNative_NUM 1                         /**< index of GetNative*/
+#define PyBBTopography_GetNative_RETURN BBTopography_t*         /**< return type for GetNative */
+#define PyBBTopography_GetNative_PROTO (PyBBTopography*)        /**< arguments for GetNative */
 
-#define PyBBTopograhy_New_NUM 2                               /**< index of New */
-#define PyBBTopograhy_New_RETURN PyBBTopograhy*              /**< return type for New */
-#define PyBBTopograhy_New_PROTO (BBTopograhy_t*)             /**< arguments for New */
+#define PyBBTopography_New_NUM 2                               /**< index of New */
+#define PyBBTopography_New_RETURN PyBBTopography*              /**< return type for New */
+#define PyBBTopography_New_PROTO (BBTopography_t*)             /**< arguments for New */
 
-#define PyBBTopograhy_API_pointers 3                          /**< number of type and function pointers */
+#define PyBBTopography_API_pointers 3                          /**< number of type and function pointers */
 
 #ifdef PYBBTOPOGRAPHY_MODULE
 /** Forward declaration of type */
-extern PyTypeObject PyBBTopograhy_Type;
+extern PyTypeObject PyBBTopography_Type;
 
-/** Checks if the object is a PyBBTopograhy or not */
-#define PyBBTopograhy_Check(op) ((op)->ob_type == &PyBBTopograhy_Type)
+/** Checks if the object is a PyBBTopography or not */
+#define PyBBTopography_Check(op) ((op)->ob_type == &PyBBTopography_Type)
 
-/** Forward declaration of PyBBTopograhy_GetNative */
-static PyBBTopograhy_GetNative_RETURN PyBBTopograhy_GetNative PyBBTopograhy_GetNative_PROTO;
+/** Forward declaration of PyBBTopography_GetNative */
+static PyBBTopography_GetNative_RETURN PyBBTopography_GetNative PyBBTopography_GetNative_PROTO;
 
 /** Forward declaration of PyRopoGenerator_New */
-static PyBBTopograhy_New_RETURN PyBBTopograhy_New PyBBTopograhy_New_PROTO;
+static PyBBTopography_New_RETURN PyBBTopography_New PyBBTopography_New_PROTO;
 
 #else
 /** Pointers to types and functions */
-static void **PyBBTopograhy_API;
+static void **PyBBTopography_API;
 
 /**
  * Returns a pointer to the internal object, remember to release the reference
  * when done with the object. (RAVE_OBJECT_RELEASE).
  */
-#define PyBBTopograhy_GetNative \
-  (*(PyBBTopograhy_GetNative_RETURN (*)PyBBTopograhy_GetNative_PROTO) PyBBTopograhy_API[PyBBTopograhy_GetNative_NUM])
+#define PyBBTopography_GetNative \
+  (*(PyBBTopography_GetNative_RETURN (*)PyBBTopography_GetNative_PROTO) PyBBTopography_API[PyBBTopography_GetNative_NUM])
 
 /**
- * Creates a new instance. Release this object with Py_DECREF. If a BBTopograhy_t instance is
+ * Creates a new instance. Release this object with Py_DECREF. If a BBTopography_t instance is
  * provided and this instance already is bound to a python instance, this instance will be increfed and
  * returned.
- * @param[in] obj - the BBTopograhy_t instance.
- * @returns the PyBBTopograhy instance.
+ * @param[in] obj - the BBTopography_t instance.
+ * @returns the PyBBTopography instance.
  */
-#define PyBBTopograhy_New \
-  (*(PyBBTopograhy_New_RETURN (*)PyBBTopograhy_New_PROTO) PyBBTopograhy_API[PyBBTopograhy_New_NUM])
+#define PyBBTopography_New \
+  (*(PyBBTopography_New_RETURN (*)PyBBTopography_New_PROTO) PyBBTopography_API[PyBBTopography_New_NUM])
 
 /**
  * Checks if the object is a python topography instance
  */
-#define PyBBTopograhy_Check(op) \
-   ((op)->ob_type == (PyTypeObject *)PyBBTopograhy_API[PyBBTopograhy_Type_NUM])
+#define PyBBTopography_Check(op) \
+   ((op)->ob_type == (PyTypeObject *)PyBBTopography_API[PyBBTopography_Type_NUM])
 
 /**
- * Imports the PyBBTopograhy module (like import _bbtopography in python).
+ * Imports the PyBBTopography module (like import _bbtopography in python).
  */
 static int
 import_bbtopography(void)
@@ -107,7 +107,7 @@ import_bbtopography(void)
     return -1;
   }
   if (PyCObject_Check(c_api_object)) {
-    PyBBTopograhy_API = (void **)PyCObject_AsVoidPtr(c_api_object);
+    PyBBTopography_API = (void **)PyCObject_AsVoidPtr(c_api_object);
   }
   Py_DECREF(c_api_object);
   Py_DECREF(module);

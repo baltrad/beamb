@@ -30,82 +30,82 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 /**
  * Defines a beam blockage object
  */
-typedef struct _BBTopograhy_t BBTopograhy_t;
+typedef struct _BBTopography_t BBTopography_t;
 
 /**
  * Type definition to use when creating a rave object.
  */
-extern RaveCoreObjectType BBTopograhy_TYPE;
+extern RaveCoreObjectType BBTopography_TYPE;
 
 /**
  * Sets the nodata value
  * @param[in] self - self
  * @param[in] nodata - the nodata value
  */
-void BBTopography_setNodata(BBTopograhy_t* self, double nodata);
+void BBTopography_setNodata(BBTopography_t* self, double nodata);
 
 /**
  * Return the nodata value
  * @param[in] self - self
  * @return the nodata value
  */
-double BBTopography_getNodata(BBTopograhy_t* self);
+double BBTopography_getNodata(BBTopography_t* self);
 
 /**
  * Sets the x-scale in radians.
  * @param[in] self - self
  * @param[in] xdim - the x-scale (step-size) in radians
  */
-void BBTopography_setXDim(BBTopograhy_t* self, double xdim);
+void BBTopography_setXDim(BBTopography_t* self, double xdim);
 
 /**
  * Return the x-scale in radians.
  * @param[in] self - self
  * @return the x-scale (step size) in radians
  */
-double BBTopography_getXDim(BBTopograhy_t* self);
+double BBTopography_getXDim(BBTopography_t* self);
 
 /**
  * Sets the y-scale in radians.
  * @param[in] self - self
  * @param[in] ydim - the y-scale (step-size) in radians
  */
-void BBTopography_setYDim(BBTopograhy_t* self, double ydim);
+void BBTopography_setYDim(BBTopography_t* self, double ydim);
 
 /**
  * Return the y-scale in radians.
  * @param[in] self - self
  * @return the y-scale (step size) in radians
  */
-double BBTopography_getYDim(BBTopograhy_t* self);
+double BBTopography_getYDim(BBTopography_t* self);
 
 /**
  * Sets the upper left x-coordinate (longitude) in the topography map (in radians).
  * @param[in] self - self
  * @param[in] ulxmap - the upper left x-coordinate (longitude in radians))
  */
-void BBTopography_setUlxmap(BBTopograhy_t* self, double ulxmap);
+void BBTopography_setUlxmap(BBTopography_t* self, double ulxmap);
 
 /**
  * Return the upper left x-coordinate (longitude) in the topography map (in radians).
  * @param[in] self - self
  * @return the upper left x-coordinate (longitude in radians))
  */
-double BBTopography_getUlxmap(BBTopograhy_t* self);
+double BBTopography_getUlxmap(BBTopography_t* self);
 
 /**
  * Sets the upper left y-coordinate (latitude) in the topography map (in radians).
  * @param[in] self - self
  * @param[in] ulxmap - the upper left y-coordinate (latitude in radians))
  */
-void BBTopography_setUlymap(BBTopograhy_t* self, double ulymap);
+void BBTopography_setUlymap(BBTopography_t* self, double ulymap);
 
 /**
  * Return the upper left y-coordinate (latitude) in the topography map (in radians).
  * @param[in] self - self
  * @return the upper left y-coordinate (latitude in radians))
  */
-double BBTopography_getUlymap(BBTopograhy_t* self);
+double BBTopography_getUlymap(BBTopography_t* self);
 
 /**
  * Creates a empty data field
@@ -115,7 +115,7 @@ double BBTopography_getUlymap(BBTopograhy_t* self);
  * @param[in] type - the data type
  * @returns 1 on success otherwise 0
  */
-int BBTopography_createData(BBTopograhy_t* self, long ncols, long nrows, RaveDataType type);
+int BBTopography_createData(BBTopography_t* self, long ncols, long nrows, RaveDataType type);
 
 /**
  * Sets the data in the topography field.
@@ -126,13 +126,13 @@ int BBTopography_createData(BBTopograhy_t* self, long ncols, long nrows, RaveDat
  * @param[in] type - the data type
  * @returns 1 on success otherwise 0
  */
-int BBTopography_setData(BBTopograhy_t* self, long ncols, long nrows, void* data, RaveDataType type);
+int BBTopography_setData(BBTopography_t* self, long ncols, long nrows, void* data, RaveDataType type);
 /**
  * Returns a pointer to the internal data storage.
  * @param[in] self - self
  * @return the internal data pointer (NOTE! Do not release this pointer)
  */
-void* BBTopography_getData(BBTopograhy_t* self);
+void* BBTopography_getData(BBTopography_t* self);
 
 /**
  * Sets the rave data 2d field. This will create a clone from the provided data field.
@@ -140,7 +140,7 @@ void* BBTopography_getData(BBTopograhy_t* self);
  * @param[in] datafield - the data field to use (MAY NOT BE NULL)
  * @return 1 on success otherwise 0
  */
-int BBTopography_setDatafield(BBTopograhy_t* self, RaveData2D_t* datafield);
+int BBTopography_setDatafield(BBTopography_t* self, RaveData2D_t* datafield);
 
 /**
  * Returns the 2d field associated with this topography field. Note, it is a
@@ -149,28 +149,28 @@ int BBTopography_setDatafield(BBTopograhy_t* self, RaveData2D_t* datafield);
  * @param[in] field - self
  * @returns a clone of the internal data array on success otherwise NULL
  */
-RaveData2D_t* BBTopography_getDatafield(BBTopograhy_t* self);
+RaveData2D_t* BBTopography_getDatafield(BBTopography_t* self);
 
 /**
  * Returns the number of columns.
  * @param[in] self - self
  * @return the number of columns
  */
-long BBTopography_getNcols(BBTopograhy_t* self);
+long BBTopography_getNcols(BBTopography_t* self);
 
 /**
  * Returns the number of rows.
  * @param[in] self - self
  * @return the number of rows
  */
-long BBTopography_getNrows(BBTopograhy_t* self);
+long BBTopography_getNrows(BBTopography_t* self);
 
 /**
  * Returns the data type
  * @param[in] self - self
  * @return the data type
  */
-RaveDataType BBTopography_getDataType(BBTopograhy_t* self);
+RaveDataType BBTopography_getDataType(BBTopography_t* self);
 
 /**
  * Returns the value at the specified index.
@@ -180,7 +180,7 @@ RaveDataType BBTopography_getDataType(BBTopograhy_t* self);
  * @param[out] v - the data at the specified index
  * @return 1 on success, 0 otherwise
  */
-int BBTopography_getValue(BBTopograhy_t* self, long col, long row, double* v);
+int BBTopography_getValue(BBTopography_t* self, long col, long row, double* v);
 
 /**
  * Sets the value at specified position
@@ -189,6 +189,18 @@ int BBTopography_getValue(BBTopograhy_t* self, long col, long row, double* v);
  * @param[in] row - the row
  * @param[in] value - the value to be set at specified coordinate
  */
-int BBTopography_setValue(BBTopograhy_t* self, long col, long row, double value);
+int BBTopography_setValue(BBTopography_t* self, long col, long row, double value);
 
-#endif /* BEAMBLOCKAGE_H */
+/**
+ * Concatenates two topography fields horizontally with each other.
+ * The fields and others y-dimension must be the same as well as the data
+ * type. It is also necessary that ydim and xdim are the same. All other
+ * attribute values will be taken from the first field.
+ *
+ * @param[in] self - self
+ * @param[in] other - the field to contatenate
+ * @returns the concatenated field on success otherwise NULL
+ */
+BBTopography_t* BBTopography_concatX(BBTopography_t* self, BBTopography_t* other);
+
+#endif /* BBTOPOGRAPHY_H */

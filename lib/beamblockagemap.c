@@ -51,19 +51,6 @@ struct _BeamBlockageMap_t {
  */
 #define DEG2RAD(deg) (deg*M_PI/180.0)
 
-/**
- * Internally used struct when reading header info from a TOPO30-file
- */
-typedef struct _map_info {
-  double ulxmap; /**< ulxmap */
-  double ulymap; /**< ulymap */
-  int nbits;     /**< nbits */
-  int nrows;     /**< nrows */
-  int ncols;     /**< ncols */
-  double xdim;   /**< xdim */
-  double ydim;   /**< ydim */
-} map_info;
-
 /*@{ Private functions */
 /**
  * Constructor.
@@ -116,12 +103,12 @@ error:
 }
 
 /**
- * Reads the gropo30 header file and populates the info struct
+ * Reads the gropo30 header file and populates the BBTopography instance with header information.
  * @param[in] self - self
  * @param[in] filename - the gtopo file
  * @param[in] info - the structure
  */
-static int BeamBlockageMapInternal_readTopographyHeader(BeamBlockageMap_t* self, const char* filename, map_info* info)
+static BBTopography_t* BeamBlockageMapInternal_readHeader(BeamBlockageMap_t* self, const char* filename)
 {
   /* Declaration of variables */
   char fname[1024];
@@ -129,12 +116,11 @@ static int BeamBlockageMapInternal_readTopographyHeader(BeamBlockageMap_t* self,
   char token[64];
   double f;
   FILE* fp = NULL;
-  int result = 0;
+  BBTopography_t *result = NULL, *field = NULL;
+  long ncols = 0, nrows = 0;
+  int nbits = 0;
 
   RAVE_ASSERT((self != NULL), "self == NULL");
-  RAVE_ASSERT((info != NULL), "info == NULL");
-
-  memset(info, 0, sizeof(map_info));
 
   if (filename == NULL) {
     goto done;
@@ -152,47 +138,71 @@ static int BeamBlockageMapInternal_readTopographyHeader(BeamBlockageMap_t* self,
     goto done;
   }
 
+  field = RAVE_OBJECT_NEW(&BBTopography_TYPE);
+  if (field == NULL) {
+    goto done;
+  }
+
   while (fgets(line, sizeof(line), fp) > 0) {
     if (sscanf(line, "%s %lf", token, &f) == 2) {
       if (strcmp(token, "NROWS") == 0) {
-        info->nrows = (int)f;
+        nrows = (long)f;
       } else if (strcmp(token, "NCOLS") == 0) {
-        info->ncols = (int)f;
+        ncols = (long)f;
       } else if (strcmp(token, "NBITS") == 0) {
-        info->nbits = (int)f;
+        nbits = (int)f;
       } else if (strcmp(token, "ULXMAP") == 0) {
-        info->ulxmap = f;
+        BBTopography_setUlxmap(field, f);
       } else if (strcmp(token, "ULYMAP") == 0) {
-        info->ulymap = f;
+        BBTopography_setUlymap(field, f);
       } else if (strcmp(token, "XDIM") == 0) {
-        info->xdim = f;
+        BBTopography_setXDim(field, f);
       } else if (strcmp(token, "YDIM") == 0) {
-        info->ydim = f;
+        BBTopography_setYDim(field, f);
       }
     }
   }
 
-  result = 1;
+  if (nbits != 0 && nbits != 16) {
+    RAVE_ERROR0("Only 16bit topography files supported");
+    goto done;
+  }
+
+  if (nrows == 0 || ncols == 0) {
+    RAVE_ERROR0("NROWS / NCOLS must not be 0");
+    goto done;
+  }
+
+  if (!BBTopography_createData(field, ncols, nrows, RaveDataType_SHORT));
+
+  result = RAVE_OBJECT_COPY(field);
 done:
+  RAVE_OBJECT_RELEASE(field);
   if (fp != NULL) {
     fclose(fp);
   }
   return result;
 }
 
-static RaveField_t* BeamBlockageMapInternal_readData(BeamBlockageMap_t* self, const char* filename, map_info* info)
+static int BeamBlockageMapInternal_fillData(BeamBlockageMap_t* self, const char* filename, BBTopography_t* field)
 {
+  int result = 0;
   FILE *fp = NULL;
   char fname[1024];
   short *tmp = NULL;
-  RaveField_t *result=NULL, *field = NULL;
-  long x, y;
+  long col, row;
+  long nrows = 0, ncols = 0;
   long nitems = 0;
 
   RAVE_ASSERT((self != NULL), "self == NULL");
-  RAVE_ASSERT((info != NULL), "info == NULL");
+  RAVE_ASSERT((field != NULL), "field == NULL");
 
   if (filename == NULL) {
+    goto done;
+  }
+
+  if (BBTopography_getDataType(field) != RaveDataType_SHORT) {
+    RAVE_ERROR0("Only supports reading of short data");
     goto done;
   }
 
@@ -202,15 +212,17 @@ static RaveField_t* BeamBlockageMapInternal_readData(BeamBlockageMap_t* self, co
     sprintf(fname, "%s.DEM", filename);
   }
 
-  nitems = info->ncols * info->nrows;
-
-  tmp = RAVE_MALLOC(sizeof(short)*nitems);
-  if (tmp == NULL) {
+  fp = fopen(fname, "rb");
+  if (fp == NULL) {
     goto done;
   }
 
-  fp = fopen(fname, "rb");
-  if (fp == NULL) {
+  nrows = BBTopography_getNrows(field);
+  ncols = BBTopography_getNcols(field);
+  nitems = nrows * ncols;
+  tmp = RAVE_MALLOC(sizeof(short)*nitems);
+  if (tmp == NULL) {
+    RAVE_ERROR0("Failed to allocate memory for data");
     goto done;
   }
 
@@ -218,24 +230,39 @@ static RaveField_t* BeamBlockageMapInternal_readData(BeamBlockageMap_t* self, co
     RAVE_WARNING0("Could not read correct number of items");
   }
 
-  field = RAVE_OBJECT_NEW(&RaveField_TYPE);
-  if (field == NULL || !RaveField_createData(field, info->ncols, info->nrows, RaveDataType_SHORT)) {
-    goto done;
+  for (col = 0; col < ncols; col++) {
+    for (row = 0; row < nrows; row++) {
+      BBTopography_setValue(field, col, row, (double)ntohs((short)(tmp[row*ncols + col])));
+    }
   }
 
-  for (x = 0; x < info->ncols; x++) {
-    for (y = 0; y < info->nrows; y++) {
-      RaveField_setValue(field, x, y, (double)ntohs((short)(tmp[y*info->ncols + x])));
+  result = 1;
+done:
+  if (fp != NULL) {
+    fclose(fp);
+  }
+  RAVE_FREE(tmp);
+  return result;
+}
+
+static BBTopography_t* BeamBlockageMapInternal_readTopography(BeamBlockageMap_t* self, const char* filename)
+{
+  BBTopography_t *result = NULL, *field = NULL;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (filename != NULL) {
+    field = BeamBlockageMapInternal_readHeader(self, filename);
+    if (field != NULL) {
+      if (!BeamBlockageMapInternal_fillData(self, filename, field)) {
+        goto done;
+      }
     }
   }
 
   result = RAVE_OBJECT_COPY(field);
 done:
-  RAVE_FREE(tmp);
   RAVE_OBJECT_RELEASE(field);
-  if (fp != NULL) {
-    fclose(fp);
-  }
   return result;
 }
 
@@ -246,12 +273,11 @@ done:
  * @param[in] d - maximum range of radar in meters
  * @returns flag corresponding to map to be read
  */
-RaveField_t* BeamBlockageMap_readTopography(BeamBlockageMap_t* self, double lat, double lon, double d)
+BBTopography_t* BeamBlockageMap_readTopography(BeamBlockageMap_t* self, double lat, double lon, double d)
 {
   double lat_e, lon_e, lat_w, lon_w, lat_n, lat_s;
   double earthRadius = 0.0;
-  RaveField_t *field = NULL, *result = NULL;
-  map_info minfo;
+  BBTopography_t *field = NULL, *result = NULL;
 
   RAVE_ASSERT((self != NULL), "self == NULL");
   earthRadius = PolarNavigator_getEarthRadius(self->navigator, lat);
@@ -272,63 +298,23 @@ RaveField_t* BeamBlockageMap_readTopography(BeamBlockageMap_t* self, double lat,
     goto done;
   } else if (RAD2DEG(lon_e) <= 20.0) {
     // Read W020N90
-    if (!BeamBlockageMapInternal_readTopographyHeader(self, "W020N90", &minfo)) {
-      goto done;
-    }
-    if ((field = BeamBlockageMapInternal_readData(self, "W020N90", &minfo)) == NULL) {
+    if ((field = BeamBlockageMapInternal_readTopography(self, "W020N90")) == NULL) {
       goto done;
     }
   } else if (RAD2DEG(lon_w) > 20.0) {
     // Read E020N90
-    if (!BeamBlockageMapInternal_readTopographyHeader(self, "E020N90", &minfo)) {
-      goto done;
-    }
-    if ((field = BeamBlockageMapInternal_readData(self, "E020N90", &minfo)) == NULL) {
+    if ((field = BeamBlockageMapInternal_readTopography(self, "E020N90")) == NULL) {
       goto done;
     }
   } else {
     // Read both
-    map_info minfo2;
-    map_info minfo3;
-    RaveField_t *field2 = NULL;
-    RaveField_t *field3 = NULL;
-
-    if (!BeamBlockageMapInternal_readTopographyHeader(self, "W020N90", &minfo2) ||
-        !BeamBlockageMapInternal_readTopographyHeader(self, "E020N90", &minfo3)) {
-      goto done;
-    }
-
-    field2 = BeamBlockageMapInternal_readData(self, "W020N90", &minfo2);
-    field3 = BeamBlockageMapInternal_readData(self, "E020N90", &minfo3);
-
+    BBTopography_t *field2 = BeamBlockageMapInternal_readTopography(self, "W020N90");
+    BBTopography_t *field3 = BeamBlockageMapInternal_readTopography(self, "E020N90");
     if (field2 != NULL && field3 != NULL) {
-      field = RaveField_concatX(field2, field3);
+      field = BBTopography_concatX(field2, field3);
     }
-
-    memcpy(&minfo, &minfo2, sizeof(map_info));
-    minfo.ncols += minfo3.ncols;
-
     RAVE_OBJECT_RELEASE(field2);
     RAVE_OBJECT_RELEASE(field3);
-  }
-  /*
-  BYTEORDER      M
-  LAYOUT       BIL
-  NROWS         6000
-  NCOLS         4800
-  NBANDS        1
-  NBITS         16
-  BANDROWBYTES         9600
-  TOTALROWBYTES        9600
-  BANDGAPBYTES         0
-  NODATA        -9999
-  ULXMAP        -19.99583333333333
-  ULYMAP        89.99583333333334
-  XDIM          0.00833333333333
-  YDIM          0.00833333333333
-  */
-  if (field != NULL) {
-    // TODO: Add attributes to field
   }
 
   result = RAVE_OBJECT_COPY(field);

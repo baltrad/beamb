@@ -31,7 +31,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 /**
  * Represents the beam blockage topography
  */
-struct _BBTopograhy_t {
+struct _BBTopography_t {
   RAVE_OBJECT_HEAD /** Always on top */
   RaveData2D_t* data; /**< the data */
   double nodata; /**< the nodata */
@@ -45,9 +45,9 @@ struct _BBTopograhy_t {
 /**
  * Constructor.
  */
-static int BBTopograhy_constructor(RaveCoreObject* obj)
+static int BBTopography_constructor(RaveCoreObject* obj)
 {
-  BBTopograhy_t* self = (BBTopograhy_t*)obj;
+  BBTopography_t* self = (BBTopography_t*)obj;
   self->data = RAVE_OBJECT_NEW(&RaveData2D_TYPE);;
   self->nodata = -9999.0;
   self->ulxmap = 0.0;
@@ -69,9 +69,9 @@ error:
  * Destructor
  * @param[in] obj - object
  */
-static void BBTopograhy_destructor(RaveCoreObject* obj)
+static void BBTopography_destructor(RaveCoreObject* obj)
 {
-  BBTopograhy_t* self = (BBTopograhy_t*)obj;
+  BBTopography_t* self = (BBTopography_t*)obj;
   RAVE_OBJECT_RELEASE(self->data);
 }
 
@@ -81,10 +81,10 @@ static void BBTopograhy_destructor(RaveCoreObject* obj)
  * @param[in] srcobj - source object
  * @return 1 on success otherwise 0
  */
-static int BBTopograhy_copyconstructor(RaveCoreObject* obj, RaveCoreObject* srcobj)
+static int BBTopography_copyconstructor(RaveCoreObject* obj, RaveCoreObject* srcobj)
 {
-  BBTopograhy_t* this = (BBTopograhy_t*)obj;
-  BBTopograhy_t* src = (BBTopograhy_t*)srcobj;
+  BBTopography_t* this = (BBTopography_t*)obj;
+  BBTopography_t* src = (BBTopography_t*)srcobj;
   this->data = RAVE_OBJECT_CLONE(src->data);
   this->nodata = src->nodata;
   this->ulxmap = src->ulxmap;
@@ -106,86 +106,86 @@ error:
 /*@} End of Private functions */
 
 /*@{ Interface functions */
-void BBTopography_setNodata(BBTopograhy_t* self, double nodata)
+void BBTopography_setNodata(BBTopography_t* self, double nodata)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   self->nodata = nodata;
 }
 
-double BBTopography_getNodata(BBTopograhy_t* self)
+double BBTopography_getNodata(BBTopography_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return self->nodata;
 }
 
-void BBTopography_setXDim(BBTopograhy_t* self, double xdim)
+void BBTopography_setXDim(BBTopography_t* self, double xdim)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   self->xdim = xdim;
 }
 
-double BBTopography_getXDim(BBTopograhy_t* self)
+double BBTopography_getXDim(BBTopography_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return self->xdim;
 }
 
 
-void BBTopography_setYDim(BBTopograhy_t* self, double ydim)
+void BBTopography_setYDim(BBTopography_t* self, double ydim)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   self->ydim = ydim;
 }
 
-double BBTopography_getYDim(BBTopograhy_t* self)
+double BBTopography_getYDim(BBTopography_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return self->ydim;
 }
 
-void BBTopography_setUlxmap(BBTopograhy_t* self, double ulxmap)
+void BBTopography_setUlxmap(BBTopography_t* self, double ulxmap)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   self->ulxmap = ulxmap;
 }
 
-double BBTopography_getUlxmap(BBTopograhy_t* self)
+double BBTopography_getUlxmap(BBTopography_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return self->ulxmap;
 }
 
-void BBTopography_setUlymap(BBTopograhy_t* self, double ulymap)
+void BBTopography_setUlymap(BBTopography_t* self, double ulymap)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   self->ulymap = ulymap;
 }
 
-double BBTopography_getUlymap(BBTopograhy_t* self)
+double BBTopography_getUlymap(BBTopography_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return self->ulymap;
 }
 
-int BBTopography_createData(BBTopograhy_t* self, long ncols, long nrows, RaveDataType type)
+int BBTopography_createData(BBTopography_t* self, long ncols, long nrows, RaveDataType type)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return RaveData2D_createData(self->data, ncols, nrows, type);
 }
 
-int BBTopography_setData(BBTopograhy_t* self, long ncols, long nrows, void* data, RaveDataType type)
+int BBTopography_setData(BBTopography_t* self, long ncols, long nrows, void* data, RaveDataType type)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return RaveData2D_setData(self->data, ncols, nrows, data, type);
 }
 
-void* BBTopography_getData(BBTopograhy_t* self)
+void* BBTopography_getData(BBTopography_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return RaveData2D_getData(self->data);
 }
 
-int BBTopography_setDatafield(BBTopograhy_t* self, RaveData2D_t* datafield)
+int BBTopography_setDatafield(BBTopography_t* self, RaveData2D_t* datafield)
 {
   int result = 0;
   RAVE_ASSERT((self != NULL), "self == NULL");
@@ -202,7 +202,7 @@ int BBTopography_setDatafield(BBTopograhy_t* self, RaveData2D_t* datafield)
   return result;
 }
 
-RaveData2D_t* BBTopography_getDatafield(BBTopograhy_t* self)
+RaveData2D_t* BBTopography_getDatafield(BBTopography_t* self)
 {
   RaveData2D_t* result = NULL;
 
@@ -216,42 +216,80 @@ RaveData2D_t* BBTopography_getDatafield(BBTopograhy_t* self)
   return result;
 }
 
-long BBTopography_getNcols(BBTopograhy_t* self)
+long BBTopography_getNcols(BBTopography_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return RaveData2D_getXsize(self->data);
 }
 
-long BBTopography_getNrows(BBTopograhy_t* self)
+long BBTopography_getNrows(BBTopography_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return RaveData2D_getYsize(self->data);
 }
 
-RaveDataType BBTopography_getDataType(BBTopograhy_t* self)
+RaveDataType BBTopography_getDataType(BBTopography_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return RaveData2D_getType(self->data);
 }
 
-int BBTopography_getValue(BBTopograhy_t* self, long col, long row, double* v)
+int BBTopography_getValue(BBTopography_t* self, long col, long row, double* v)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return RaveData2D_getValue(self->data, col, row, v);
 }
 
-int BBTopography_setValue(BBTopograhy_t* self, long col, long row, double value)
+int BBTopography_setValue(BBTopography_t* self, long col, long row, double value)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return RaveData2D_setValue(self->data, col, row, value);
 }
 
+BBTopography_t* BBTopography_concatX(BBTopography_t* self, BBTopography_t* other)
+{
+  BBTopography_t *result = NULL;
+  RaveData2D_t* dfield = NULL;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  if (other == NULL) {
+    RAVE_ERROR0("Trying to concatenate self with NULL");
+    return NULL;
+  }
+
+  if (BBTopography_getNrows(self) != BBTopography_getNrows(other) ||
+      BBTopography_getXDim(self) != BBTopography_getXDim(other) ||
+      BBTopography_getYDim(self) != BBTopography_getYDim(other)) {
+    RAVE_ERROR0("Can not concatenate two topography fields that doesn't have same nrows/xdim and ydim values");
+    return NULL;
+  }
+
+  dfield = RaveData2D_concatX(self->data, other->data);
+  if (dfield != NULL) {
+    result = RAVE_OBJECT_NEW(&BBTopography_TYPE);
+    if (result == NULL) {
+      RAVE_ERROR0("Failed to create topography field");
+    } else {
+      RAVE_OBJECT_RELEASE(result->data);
+      result->data = RAVE_OBJECT_COPY(dfield);
+      BBTopography_setNodata(result, BBTopography_getNodata(self));
+      BBTopography_setUlxmap(result, BBTopography_getUlxmap(self));
+      BBTopography_setUlymap(result, BBTopography_getUlymap(self));
+      BBTopography_setXDim(result, BBTopography_getXDim(self));
+      BBTopography_setYDim(result, BBTopography_getYDim(self));
+    }
+  }
+
+  RAVE_OBJECT_RELEASE(dfield);
+  return result;
+}
+
 /*@} End of Interface functions */
 
-RaveCoreObjectType BBTopograhy_TYPE = {
-    "BBTopograhy",
-    sizeof(BBTopograhy_t),
-    BBTopograhy_constructor,
-    BBTopograhy_destructor,
-    BBTopograhy_copyconstructor
+RaveCoreObjectType BBTopography_TYPE = {
+    "BBTopography",
+    sizeof(BBTopography_t),
+    BBTopography_constructor,
+    BBTopography_destructor,
+    BBTopography_copyconstructor
 };

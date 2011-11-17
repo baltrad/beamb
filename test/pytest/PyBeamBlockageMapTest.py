@@ -54,16 +54,16 @@ class PyBeamBlockageMapTest(unittest.TestCase):
     a.topo30dir="../../data/gtopo30"
     result = a.readTopography(60*math.pi/180, 14*math.pi/180.0, 100000)
     self.assertTrue(result != None)
-    self.assertEquals(6000, result.ysize)
-    self.assertEquals(4800, result.xsize)
+    self.assertEquals(6000, result.nrows)
+    self.assertEquals(4800, result.ncols)
     
   def testReadTopo30_combined(self):
     a = _beamblockagemap.new()
     a.topo30dir="../../data/gtopo30"
     result = a.readTopography(60*math.pi/180, 20*math.pi/180.0, 200000)
     self.assertTrue(result != None)
-    self.assertEquals(6000, result.ysize)
-    self.assertEquals(9600, result.xsize)
+    self.assertEquals(6000, result.nrows)
+    self.assertEquals(9600, result.ncols)
   
 if __name__ == "__main__":
   #import sys;sys.argv = ['', 'Test.testName']

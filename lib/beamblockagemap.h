@@ -26,6 +26,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 #define BEAMBLOCKAGEMAP_H
 #include "rave_object.h"
 #include "rave_field.h"
+#include "bbtopography.h"
 
 /**
  * Defines a beam blockage object
@@ -57,8 +58,8 @@ const char* BeamBlockageMap_getTopo30Directory(BeamBlockageMap_t* self);
  * @param[in] lat - latitude of radar in radians
  * @param[in] lon - longitude of radar in radians
  * @param[in] d - maximum range of radar in meters
- * @returns flag corresponding to map to be read
+ * @returns the topography field
  */
-RaveField_t* BeamBlockageMap_readTopography(BeamBlockageMap_t* self, double lat, double lon, double d);
+BBTopography_t* BeamBlockageMap_readTopography(BeamBlockageMap_t* self, double lat, double lon, double d);
 
 #endif /* BEAMBLOCKAGEMAP_H */

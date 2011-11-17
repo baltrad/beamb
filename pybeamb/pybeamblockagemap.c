@@ -32,7 +32,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "pyrave_debug.h"
 #include "rave_alloc.h"
-#include "pyravefield.h"
+#include "pybbtopography.h"
 
 /**
  * Debug this module
@@ -155,14 +155,14 @@ static PyObject* _pybeamblockagemap_readTopography(PyBeamBlockageMap* self, PyOb
 {
   double lat = 0.0, lon = 0.0, radius = 0.0;
   PyObject* result = NULL;
-  RaveField_t* field = NULL;
+  BBTopography_t* field = NULL;
 
   if (!PyArg_ParseTuple(args, "ddd", &lat, &lon, &radius)) {
     return NULL;
   }
   field = BeamBlockageMap_readTopography(self->map, lat, lon, radius);
   if (field != NULL) {
-    result = (PyObject*)PyRaveField_New(field);
+    result = (PyObject*)PyBBTopography_New(field);
   } else {
     PyErr_SetString(PyExc_EnvironmentError, "Could not open topography");
   }
@@ -298,7 +298,7 @@ init_beamblockagemap(void)
   if (ErrorObject == NULL || PyDict_SetItemString(dictionary, "error", ErrorObject) != 0) {
     Py_FatalError("Can't define _beamblockagemap.error");
   }
-  import_pyravefield();
+  import_bbtopography();
   PYRAVE_DEBUG_INITIALIZE;
 }
 /*@} End of Module setup */

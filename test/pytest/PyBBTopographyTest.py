@@ -38,41 +38,41 @@ class PyBBTopographyTest(unittest.TestCase):
   def tearDown(self):
     pass
   
-  def testNew(self):
+  def test_new(self):
     a = _bbtopography.new()
     self.assertNotEqual(-1, string.find(`type(a)`, "BBTopographyCore"))
 
-  def testNodata(self):
+  def test_nodata(self):
     a = _bbtopography.new()
     self.assertAlmostEqual(-9999.0, a.nodata, 4)
     a.nodata = 10.0
     self.assertAlmostEqual(10.0, a.nodata, 4)
 
-  def testUlxmap(self):
+  def test_ulxmap(self):
     a = _bbtopography.new()
     self.assertAlmostEqual(0.0, a.ulxmap, 4)
     a.ulxmap = 2.5
     self.assertAlmostEqual(2.5, a.ulxmap, 4)
 
-  def testUyxmap(self):
+  def test_ulymap(self):
     a = _bbtopography.new()
     self.assertAlmostEqual(0.0, a.ulymap, 4)
     a.ulymap = 2.5
     self.assertAlmostEqual(2.5, a.ulymap, 4)
 
-  def testXdim(self):
+  def test_xdim(self):
     a = _bbtopography.new()
     self.assertAlmostEqual(0.0, a.xdim, 4)
     a.xdim = 2.5
     self.assertAlmostEqual(2.5, a.xdim, 4)
 
-  def testYdim(self):
+  def test_ydim(self):
     a = _bbtopography.new()
     self.assertAlmostEqual(0.0, a.ydim, 4)
     a.ydim = 2.5
     self.assertAlmostEqual(2.5, a.ydim, 4)
     
-  def testNcols(self):
+  def test_ncols(self):
     a = _bbtopography.new()
     self.assertAlmostEqual(0.0, a.ncols, 4)
     try:
@@ -82,7 +82,7 @@ class PyBBTopographyTest(unittest.TestCase):
       pass
     self.assertAlmostEqual(0.0, a.ncols, 4)
 
-  def testNrows(self):
+  def test_nrows(self):
     a = _bbtopography.new()
     self.assertAlmostEqual(0.0, a.nrows, 4)
     try:
@@ -92,7 +92,7 @@ class PyBBTopographyTest(unittest.TestCase):
       pass
     self.assertAlmostEqual(0.0, a.nrows, 4)
 
-  def testData(self):
+  def test_data(self):
     obj = _bbtopography.new()
     obj.setData(numpy.zeros((10,10), numpy.uint8))
     obj.setValue(0,1,10.0)
@@ -101,6 +101,25 @@ class PyBBTopographyTest(unittest.TestCase):
     data = obj.getData()
     self.assertEqual(10, data[1][0])
     self.assertEqual(20, data[4][5])
+
+  def test_concatx(self):
+    obj = _bbtopography.new()
+    obj.setData(numpy.zeros((10,10), numpy.uint8))
+    obj.setValue(0,1,10.0)
+    obj.setValue(5,4,20.0)
+
+    obj2 = _bbtopography.new()
+    obj2.setData(numpy.zeros((10,6), numpy.uint8))
+    obj2.setValue(0,1,15.0)
+    obj2.setValue(5,4,25.0)
+
+    result = obj.concatx(obj2)
+    self.assertEquals(16, result.ncols)
+    self.assertEquals(10, result.nrows)
+    self.assertAlmostEquals(10.0, result.getValue(0,1)[1], 4)
+    self.assertAlmostEquals(20.0, result.getValue(5,4)[1], 4)
+    self.assertAlmostEquals(15.0, result.getValue(10,1)[1], 4)
+    self.assertAlmostEquals(25.0, result.getValue(15,4)[1], 4)    
 
 if __name__ == "__main__":
   #import sys;sys.argv = ['', 'Test.testName']
