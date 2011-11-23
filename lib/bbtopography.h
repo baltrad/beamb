@@ -204,6 +204,4 @@ int BBTopography_setValue(BBTopography_t* self, long col, long row, double value
  */
 BBTopography_t* BBTopography_concatX(BBTopography_t* self, BBTopography_t* other);
 
-int BBTopography_getLonLatFields(BBTopography_t* self, PolarScan_t* scan, RaveData2D_t** lon, RaveData2D_t** lat);
-
 #endif /* BBTOPOGRAPHY_H */

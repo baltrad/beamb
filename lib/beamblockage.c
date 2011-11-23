@@ -148,20 +148,53 @@ const char* BeamBlockage_getTopo30Directory(BeamBlockage_t* self)
 RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan)
 {
   RaveField_t *field = NULL, *result = NULL;
-  double* ground_range = NULL;
+  RaveData2D_t *lon = NULL, *lat = NULL;
+  BBTopography_t* topo = NULL;
+  double lon_min = 0.0, lon_max = 0.0, lat_min = 0.0, lat_max = 0.0;
+
+  long ulx = 0, uly = 0, llx = 0, lly = 0;
 
   RAVE_ASSERT((self != NULL), "self == NULL");
   if (scan == NULL) {
     return NULL;
   }
-  ground_range = BeamBlockageInternal_computeGroundRange(self, scan);
-  if (ground_range == NULL) {
+
+  topo = BeamBlockageMap_readTopography(self->mapper,
+                                        PolarScan_getLatitude(scan),
+                                        PolarScan_getLongitude(scan),
+                                        PolarScan_getMaxDistance(scan));
+  if (topo == NULL) {
     goto done;
   }
 
+#ifdef KALLE
+  if (!BeamBlockageInternal_getLonLatFields(scan, &lon, &lat)) {
+    goto done;
+  }
+
+  if (!BeamBlockageInternal_min(lon, &lon_min) ||
+      !BeamBlockageInternal_max(lon, &lon_max) ||
+      !BeamBlockageInternal_min(lat, &lat_min) ||
+      !BeamBlockageInternal_max(lon, &lat_max)) {
+    goto done;
+  }
+  lon_min = floor((lon_min - BBTopography_getUlxmap(topo)) / BBTopography_getXDim(topo)) - 1;
+  lon_max = ceil((lon_max - BBTopography_getUlxmap(topo)) / BBTopography_getXDim(topo)) + 1;
+  lat_max = floor((BBTopography_getUlymap(topo) - lat_max) / BBTopography_getYDim(topo)) - 1;
+  lat_min = ceil((BBTopography_getUlymap(topo) - lat_min) / BBTopography_getYDim(topo)) + 1;
+
+#endif
+  /*
+  lon_min = floor( (min_double(lon,ri*ai)-ulxmap) / xdim ) - 1;
+  lon_max = ceil( (max_double(lon,ri*ai)-ulxmap) / xdim ) + 1;
+  lat_max = floor( (ulymap-max_double(lat,ri*ai)) / ydim ) - 1;
+  lat_min = ceil( (ulymap-min_double(lat,ri*ai)) / ydim ) + 1;
+  */
   result = RAVE_OBJECT_COPY(field);
 done:
   RAVE_OBJECT_RELEASE(field);
+  RAVE_OBJECT_RELEASE(lon);
+  RAVE_OBJECT_RELEASE(lat);
   return result;
 }
 

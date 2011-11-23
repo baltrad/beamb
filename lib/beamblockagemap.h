@@ -27,6 +27,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 #include "rave_object.h"
 #include "rave_field.h"
 #include "bbtopography.h"
+#include "polarscan.h"
 
 /**
  * Defines a beam blockage object
@@ -61,5 +62,14 @@ const char* BeamBlockageMap_getTopo30Directory(BeamBlockageMap_t* self);
  * @returns the topography field
  */
 BBTopography_t* BeamBlockageMap_readTopography(BeamBlockageMap_t* self, double lat, double lon, double d);
+
+/**
+ * Returns a topography that matches the scan sweep strategy. I.e. the topography
+ * for each bin/ray index.
+ * @param[in] self - self
+ * @param[in] scan - the polar scan
+ * @returns the topography with the corresponding dimensions. cols = bin and rows = rays
+ */
+BBTopography_t* BeamBlockageMap_getTopographyForScan(BeamBlockageMap_t* self, PolarScan_t* scan);
 
 #endif /* BEAMBLOCKAGEMAP_H */
