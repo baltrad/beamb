@@ -30,6 +30,8 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 #define PYBEAMBLOCKAGE_MODULE   /**< to get correct part in pybeamblockage */
 #include "pybeamblockage.h"
 
+#include "pypolarscan.h"
+#include "pyravefield.h"
 #include "pyrave_debug.h"
 #include "rave_alloc.h"
 
@@ -144,11 +146,41 @@ static PyObject* _pybeamblockage_new(PyObject* self, PyObject* args)
 }
 
 /**
+ * Returns the blockage for the provided scan given gaussian limit.
+ * @param[in] self - self
+ * @param[in] args - the arguments (PyPolarScan, double (Limit of Gaussian approximation of main lobe))
+ * @return the PyRaveField on success otherwise NULL
+ */
+static PyObject* _pybeamblockage_getBlockage(PyBeamBlockage* self, PyObject* args)
+{
+  PyObject* pyin = NULL;
+  double dBlim = 0;
+  RaveField_t* field = NULL;
+  PyObject* result = NULL;
+
+  if (!PyArg_ParseTuple(args, "Od", &pyin, &dBlim)) {
+    return NULL;
+  }
+
+  if (!PyPolarScan_Check(pyin)) {
+    raiseException_returnNULL(PyExc_ValueError, "First argument should be a Polar Scan");
+  }
+
+  field = BeamBlockage_getBlockage(self->beamb, ((PyPolarScan*)pyin)->scan, dBlim);
+  if (field != NULL) {
+    result = (PyObject*)PyRaveField_New(field);
+  }
+  RAVE_OBJECT_RELEASE(field);
+  return result;
+}
+
+/**
  * All methods a ropo generator can have
  */
 static struct PyMethodDef _pybeamblockage_methods[] =
 {
   {"topo30dir", NULL},
+  {"getBlockage", (PyCFunction)_pybeamblockage_getBlockage, 1},
   {NULL, NULL} /* sentinel */
 };
 
@@ -270,6 +302,8 @@ init_beamblockage(void)
   if (ErrorObject == NULL || PyDict_SetItemString(dictionary, "error", ErrorObject) != 0) {
     Py_FatalError("Can't define _beamblockage.error");
   }
+  import_pyravefield();
+  import_pypolarscan();
   PYRAVE_DEBUG_INITIALIZE;
 }
 /*@} End of Module setup */

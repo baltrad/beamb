@@ -193,6 +193,19 @@ int BBTopography_getValue(BBTopography_t* self, long col, long row, double* v);
 int BBTopography_setValue(BBTopography_t* self, long col, long row, double value);
 
 /**
+ * Returns the value at the specified lon/lat coordinate. If outside boundaries or if
+ * there is no data at provided coordinate the returned value will be 0 but v will still
+ * be set to nodata.
+ *
+ * @param[in] self - self
+ * @param[in] lon - the longitude
+ * @param[in] lat - the latitude
+ * @param[out] v - the value at specified position
+ * @return the outcome of the operation.
+ */
+int BBTopography_getValueAtLonLat(BBTopography_t* self, double lon, double lat, double* v);
+
+/**
  * Concatenates two topography fields horizontally with each other.
  * The fields and others y-dimension must be the same as well as the data
  * type. It is also necessary that ydim and xdim are the same. All other

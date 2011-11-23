@@ -59,8 +59,9 @@ const char* BeamBlockage_getTopo30Directory(BeamBlockage_t* self);
  * Gets the blockage for the provided scan.
  * @param[in] self - self
  * @param[in] scan - the scan to check blockage
+ * @param[in] dBlim -
  * @return the beam blockage field
  */
-RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan);
+RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, double dBlim);
 
 #endif /* BEAMBLOCKAGE_H */

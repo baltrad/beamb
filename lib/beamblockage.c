@@ -130,6 +130,32 @@ done:
   return result;
 }
 
+/**
+ * Generate a running cumulative maximum.
+ * @param[in] p - pointer to array of values
+ * @param[in] nlen - length of vector p
+ */
+static void BeamBlockageInternal_cummax(double* p, long nlen)
+{
+  double t = 0.0;
+  long i = 0;
+
+  RAVE_ASSERT((p != NULL), "p == NULL");
+  if (nlen <= 0) {
+    RAVE_WARNING0("Trying to generate a cumulative max without any data");
+    return;
+  }
+
+  t = p[0];
+  for (i = 1; i < nlen; i++) {
+    if (p[i] < t) {
+      p[i] = t;
+    } else {
+      t = p[i];
+    }
+  }
+}
+
 /*@} End of Private functions */
 
 /*@{ Interface functions */
@@ -145,56 +171,104 @@ const char* BeamBlockage_getTopo30Directory(BeamBlockage_t* self)
   return (const char*)BeamBlockageMap_getTopo30Directory(self->mapper);
 }
 
-RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan)
+RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, double dBlim)
 {
   RaveField_t *field = NULL, *result = NULL;
-  RaveData2D_t *lon = NULL, *lat = NULL;
-  BBTopography_t* topo = NULL;
-  double lon_min = 0.0, lon_max = 0.0, lat_min = 0.0, lat_max = 0.0;
-
-  long ulx = 0, uly = 0, llx = 0, lly = 0;
+  BBTopography_t *topo = NULL;
+  double RE = 0.0, R = 0;
+  PolarNavigator_t* navigator = NULL;
+  long bi = 0, ri = 0;
+  long nbins = 0, nrays = 0;
+  double* phi = NULL;
+  double* groundRange = NULL;
+  double height = 0.0;
+  double beamwidth = 0.0, elangle = 0.0;
+  double c, elLim, bb_tot;
+  double elBlock = 0.0;
 
   RAVE_ASSERT((self != NULL), "self == NULL");
+
   if (scan == NULL) {
     return NULL;
   }
+  navigator = PolarScan_getNavigator(scan);
+  if (navigator == NULL) {
+    RAVE_ERROR0("Scan does not have a polar navigator instance attached");
+    goto done;
+  }
 
-  topo = BeamBlockageMap_readTopography(self->mapper,
-                                        PolarScan_getLatitude(scan),
-                                        PolarScan_getLongitude(scan),
-                                        PolarScan_getMaxDistance(scan));
+  groundRange = BeamBlockageInternal_computeGroundRange(self, scan);
+  if (groundRange == NULL) {
+    goto done;
+  }
+
+  topo = BeamBlockageMap_getTopographyForScan(self->mapper, scan);
   if (topo == NULL) {
     goto done;
   }
 
-#ifdef KALLE
-  if (!BeamBlockageInternal_getLonLatFields(scan, &lon, &lat)) {
+  nbins = PolarScan_getNbins(scan);
+  nrays = PolarScan_getNrays(scan);
+
+  field = RAVE_OBJECT_NEW(&RaveField_TYPE);
+  if (field == NULL || !RaveField_createData(field, nbins, nrays, RaveDataType_DOUBLE)) {
     goto done;
   }
 
-  if (!BeamBlockageInternal_min(lon, &lon_min) ||
-      !BeamBlockageInternal_max(lon, &lon_max) ||
-      !BeamBlockageInternal_min(lat, &lat_min) ||
-      !BeamBlockageInternal_max(lon, &lat_max)) {
+  phi = RAVE_MALLOC(sizeof(double)*nbins);
+  if (phi == NULL) {
     goto done;
   }
-  lon_min = floor((lon_min - BBTopography_getUlxmap(topo)) / BBTopography_getXDim(topo)) - 1;
-  lon_max = ceil((lon_max - BBTopography_getUlxmap(topo)) / BBTopography_getXDim(topo)) + 1;
-  lat_max = floor((BBTopography_getUlymap(topo) - lat_max) / BBTopography_getYDim(topo)) - 1;
-  lat_min = ceil((BBTopography_getUlymap(topo) - lat_min) / BBTopography_getYDim(topo)) + 1;
 
-#endif
-  /*
-  lon_min = floor( (min_double(lon,ri*ai)-ulxmap) / xdim ) - 1;
-  lon_max = ceil( (max_double(lon,ri*ai)-ulxmap) / xdim ) + 1;
-  lat_max = floor( (ulymap-max_double(lat,ri*ai)) / ydim ) - 1;
-  lat_min = ceil( (ulymap-min_double(lat,ri*ai)) / ydim ) + 1;
-  */
+  RE = PolarNavigator_getEarthRadiusOrigin(navigator);
+  R = 1.0/((1.0/RE) + PolarNavigator_getDndh(navigator));
+  height = PolarNavigator_getAlt0(navigator);
+
+  beamwidth = PolarScan_getBeamwidth(scan);
+  elangle = PolarScan_getElangle(scan);
+
+  /* Width of Gaussian */
+  c = -((beamwidth/2.0)*(beamwidth/2.0))/log(0.5);
+
+  /* Elevation limits */
+  elLim = sqrt( -c*log(pow(10.0,(dBlim/10.0)) ) );
+
+  /* Find total blockage within -elLim to +elLim */
+  bb_tot = sqrt(M_PI*c) * erf(elLim/sqrt(c));
+
+  for (ri = 0; ri < nrays; ri++) {
+    for (bi = 0; bi < nbins; bi++) {
+      double v = 0.0;
+      BBTopography_getValue(topo, bi, ri, &v);
+      phi[bi] = asin((((v+R)*(v+R)) - (groundRange[bi]*groundRange[bi]) - ((R+height)*(R+height))) / (2*groundRange[bi]*(R+height)));
+      //fprintf(stderr, "ri=%d, bi=%d => phi(%d) = %f\n", ri, bi, bi, phi[bi]);
+      //phi[j] = asin((pow(v + R, 2) - pow(groundRange[bi],2) - pow(R + height,2) ) / (2*groundRange[bi]*(R+height)));
+    }
+    BeamBlockageInternal_cummax(phi, nbins);
+
+    for (bi = 0; bi < nbins; bi++) {
+      double bbval = 0.0;
+      elBlock = phi[bi];
+      if (elBlock < elangle - elLim) {
+        elBlock = -9999.0;
+      }
+      if (elBlock > elangle + elLim) {
+        elBlock = elangle + elLim;
+      }
+      bbval = -1.0/2.0 * sqrt(M_PI * c) * (erf((elangle - elBlock)/sqrt(c)) - erf(elLim/sqrt(c)))/bb_tot;
+      RaveField_setValue(field, bi, ri, bbval);
+      /*bb[i*ri+j] = -1./2. * sqrt(M_PI*c) * ( erf( (el-elBlock[i*ri+j]) / \
+                      sqrt(c) ) - erf( (el-(el-elLim))/sqrt(c) ) ) / bb_tot; */
+    }
+  }
+
   result = RAVE_OBJECT_COPY(field);
 done:
+  RAVE_OBJECT_RELEASE(navigator);
   RAVE_OBJECT_RELEASE(field);
-  RAVE_OBJECT_RELEASE(lon);
-  RAVE_OBJECT_RELEASE(lat);
+  RAVE_OBJECT_RELEASE(topo);
+  RAVE_FREE(phi);
+  RAVE_FREE(groundRange);
   return result;
 }
 

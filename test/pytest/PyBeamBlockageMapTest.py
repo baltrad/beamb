@@ -33,6 +33,8 @@ import _rave
 import math
 
 class PyBeamBlockageMapTest(unittest.TestCase):
+  SCAN_FILENAME = "fixtures/scan_sevil_20100702T113200Z.h5"
+  
   def setUp(self):
     pass    
 
@@ -65,6 +67,13 @@ class PyBeamBlockageMapTest(unittest.TestCase):
     self.assertEquals(6000, result.nrows)
     self.assertEquals(9600, result.ncols)
   
+  def testGetTopographyForScan(self):
+    a = _beamblockagemap.new()
+    a.topo30dir="../../data/gtopo30"
+    scan = _raveio.open(self.SCAN_FILENAME).object
+    topo = a.getTopographyForScan(scan)
+    self.assertEqual(174, topo.getData()[0][0])
+    
 if __name__ == "__main__":
   #import sys;sys.argv = ['', 'Test.testName']
   unittest.main()

@@ -30,6 +30,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 #define PYBEAMBLOCKAGEMAP_MODULE   /**< to get correct part in pybeamblockagemap */
 #include "pybeamblockagemap.h"
 
+#include "pypolarscan.h"
 #include "pyrave_debug.h"
 #include "rave_alloc.h"
 #include "pybbtopography.h"
@@ -170,6 +171,25 @@ static PyObject* _pybeamblockagemap_readTopography(PyBeamBlockageMap* self, PyOb
   return result;
 }
 
+static PyObject* _pybeamblockagemap_getTopographyForScan(PyBeamBlockageMap* self, PyObject* args)
+{
+  PyObject* pyin = NULL;
+  BBTopography_t* field = NULL;
+  PyObject* result = NULL;
+  if (!PyArg_ParseTuple(args, "O", &pyin)) {
+    return NULL;
+  }
+  if (!PyPolarScan_Check(pyin)) {
+    raiseException_returnNULL(PyExc_ValueError, "In object must be a polar scan");
+  }
+  field = BeamBlockageMap_getTopographyForScan(self->map, ((PyPolarScan*)pyin)->scan);
+  if (field != NULL) {
+    result = (PyObject*)PyBBTopography_New(field);
+  }
+  RAVE_OBJECT_RELEASE(field);
+  return result;
+}
+
 /**
  * All methods a beam blockage map can have
  */
@@ -177,6 +197,7 @@ static struct PyMethodDef _pybeamblockagemap_methods[] =
 {
   {"topo30dir", NULL},
   {"readTopography", (PyCFunction)_pybeamblockagemap_readTopography, 1},
+  {"getTopographyForScan", (PyCFunction)_pybeamblockagemap_getTopographyForScan, 1},
   {NULL, NULL} /* sentinel */
 };
 
@@ -299,6 +320,7 @@ init_beamblockagemap(void)
     Py_FatalError("Can't define _beamblockagemap.error");
   }
   import_bbtopography();
+  import_pypolarscan();
   PYRAVE_DEBUG_INITIALIZE;
 }
 /*@} End of Module setup */

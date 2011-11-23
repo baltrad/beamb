@@ -152,13 +152,13 @@ static BBTopography_t* BeamBlockageMapInternal_readHeader(BeamBlockageMap_t* sel
       } else if (strcmp(token, "NBITS") == 0) {
         nbits = (int)f;
       } else if (strcmp(token, "ULXMAP") == 0) {
-        BBTopography_setUlxmap(field, f);
+        BBTopography_setUlxmap(field, f * M_PI/180.0);
       } else if (strcmp(token, "ULYMAP") == 0) {
-        BBTopography_setUlymap(field, f);
+        BBTopography_setUlymap(field, f * M_PI/180.0);
       } else if (strcmp(token, "XDIM") == 0) {
-        BBTopography_setXDim(field, f);
+        BBTopography_setXDim(field, f * M_PI/180.0);
       } else if (strcmp(token, "YDIM") == 0) {
-        BBTopography_setYDim(field, f);
+        BBTopography_setYDim(field, f * M_PI/180.0);
       }
     }
   }
@@ -184,6 +184,15 @@ done:
   return result;
 }
 
+/**
+ * Fills the data in the topography field. The topography field should first have been created
+ * with a call to \ref BeamBlockageMapInternal_readHeader in order to get correct dimensions
+ * etc.
+ * @param[in] self - self
+ * @param[in] filename - the filename (exluding suffix and directory name)
+ * @param[in] field - the gtopo30 topography skeleton.
+ * @returns 1 on success otherwise 0
+ */
 static int BeamBlockageMapInternal_fillData(BeamBlockageMap_t* self, const char* filename, BBTopography_t* field)
 {
   int result = 0;
@@ -245,6 +254,13 @@ done:
   return result;
 }
 
+/**
+ * Reads the topography with the specified filename. The directory path should not be used, instead
+ * the topo30dir variable will be used.
+ * @param[in] self - self
+ * @param[in] filename - the gtopo30 filename (excluding suffix)
+ * @returns the topography on success otherwise NULL
+ */
 static BBTopography_t* BeamBlockageMapInternal_readTopography(BeamBlockageMap_t* self, const char* filename)
 {
   BBTopography_t *result = NULL, *field = NULL;
@@ -265,149 +281,33 @@ done:
   RAVE_OBJECT_RELEASE(field);
   return result;
 }
-/**
- * Locates the min value in the rave data2d field.
- * @param[in] field - the data field
- * @param[out] omin - the minimum value
- * @return 1 on success otherwise 0
- */
-static int BeamBlockageMapInternal_min(RaveData2D_t* field, double* omin)
-{
-  double minv = 0.0, v = 0.0;
-  long xsize = 0, ysize = 0;
-  long x = 0, y = 0;
-  int result = 0;
-
-  RAVE_ASSERT((field != NULL), "field == NULL");
-  RAVE_ASSERT((omin != NULL), "omin == NULL");
-
-  xsize = RaveData2D_getXsize(field);
-  ysize = RaveData2D_getYsize(field);
-  if (x > 0 && y > 0) {
-    result = RaveData2D_getValue(field, 0, 0, &minv);
-    for (x = 0; result && x < xsize; x++) {
-      for (y = 0; result && y < ysize; y++) {
-        result = RaveData2D_getValue(field, x, y, &v);
-        if (v <= minv) {
-          minv = v;
-        }
-      }
-    }
-  }
-  *omin = minv;
-  return result;
-}
 
 /**
- * Locates the max value in the rave data2d field.
- * @param[in] field - the data field
- * @param[out] omax - the minimum value
- * @return 1 on success otherwise 0
+ * Creates a topography that is mapped against a specific scan.
+ * @param[in] self - self
+ * @param[in] topo - the overall topography that hopefully covers the scan
+ * @param[in] scan - the scan that should get the topography mapped
+ * @return the mapped topography on success otherwise NULL
  */
-static int BeamBlockageMapInternal_max(RaveData2D_t* field, double* omax)
+static BBTopography_t* BeamBlockageMapInternal_createMappedTopography(BeamBlockageMap_t* self, BBTopography_t* topo, PolarScan_t* scan)
 {
-  double maxv = 0.0, v = 0.0;
-  long xsize = 0, ysize = 0;
-  long x = 0, y = 0;
-  int result = 0;
-
-  RAVE_ASSERT((field != NULL), "field == NULL");
-  RAVE_ASSERT((omax != NULL), "omax == NULL");
-
-  xsize = RaveData2D_getXsize(field);
-  ysize = RaveData2D_getYsize(field);
-  if (x > 0 && y > 0) {
-    result = RaveData2D_getValue(field, 0, 0, &maxv);
-    for (x = 0; result && x < xsize; x++) {
-      for (y = 0; result && y < ysize; y++) {
-        result = RaveData2D_getValue(field, x, y, &v);
-        if (v >= maxv) {
-          maxv = v;
-        }
-      }
-    }
-  }
-  *omax = maxv;
-  return result;
-}
-
-/**
- * Extracts a subset of a rave data 2d field
- * @param[in] field - the original field
- * @param[in] ulx - the upper left x coordinate
- * @param[in] uly - the upper left y coordinate
- * @param[in] llx - the lower left x coordinate
- * @param[in] lly - the lower left y coordinate
- * @returns the subset on success otherwise NULL
- */
-static RaveData2D_t* BeamBlockageMapInternal_subset(RaveData2D_t* field, long ulx, long uly, long llx, long lly)
-{
-  RaveData2D_t *ofield = NULL, *result = NULL;
-  long xsize = 0, ysize = 0, x = 0, y = 0;
-  RaveDataType dtype = RaveDataType_UNDEFINED;
-
-  RAVE_ASSERT((field != NULL), "field == NULL");
-
-  xsize = llx - ulx;
-  ysize = lly - uly;
-  dtype = RaveData2D_getType(field);
-
-  if (ulx < 0 || uly < 0 ||
-      llx >= RaveData2D_getXsize(field) ||
-      lly >= RaveData2D_getYsize(field) ||
-      xsize <= 0 || ysize <= 0) {
-    RAVE_WARNING0("Bad subset coorner points.");
-    goto done;
-  }
-
-  ofield = RAVE_OBJECT_NEW(&RaveData2D_TYPE);
-  if (ofield == NULL || !RaveData2D_createData(ofield, xsize, ysize, dtype)) {
-    goto done;
-  }
-
-  for (x = ulx; x < llx; x++) {
-    for (y = uly; y < lly; y++) {
-      double v = 0.0;
-      RaveData2D_getValue(field, x, y, &v);
-      RaveData2D_setValue(ofield, x-ulx, y-uly, v);
-    }
-  }
-
-  result = RAVE_OBJECT_COPY(ofield);
-done:
-  RAVE_OBJECT_RELEASE(ofield);
-  return result;
-}
-
-
-static int BeamBlockageMapInternal_getLonLatFields(PolarScan_t* scan, RaveData2D_t** lon, RaveData2D_t** lat)
-{
-  int result = 0;
+  BBTopography_t *field = NULL, *result = NULL;
   long nrays = 0, nbins = 0;
   long ri = 0, bi = 0;
-  double elangle = 0.0;
-  RaveData2D_t *olon = NULL, *olat = NULL;
 
-  RAVE_ASSERT((lon != NULL), "lon == NULL");
-  RAVE_ASSERT((lat != NULL), "lat == NULL");
-
-  if (scan == NULL) {
-    goto done;
-  }
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  RAVE_ASSERT((topo != NULL), "topo == NULL");
+  RAVE_ASSERT((scan != NULL), "scan == NULL");
 
   nrays = PolarScan_getNrays(scan);
   nbins = PolarScan_getNbins(scan);
-  elangle = PolarScan_getElangle(scan);
 
-  olon = RAVE_OBJECT_NEW(&RaveData2D_TYPE);
-  olat = RAVE_OBJECT_NEW(&RaveData2D_TYPE);
-
-  if (olon == NULL || olat == NULL) {
+  field = RAVE_OBJECT_NEW(&BBTopography_TYPE);
+  if (field == NULL) {
     goto done;
   }
-
-  if (!RaveData2D_createData(olon, nbins, nrays, RaveDataType_DOUBLE) ||
-      !RaveData2D_createData(olat, nbins, nrays, RaveDataType_DOUBLE)) {
+  if (!BBTopography_createData(field, nbins, nrays, BBTopography_getDataType(topo))) {
+    RAVE_ERROR0("Failed to create data field");
     goto done;
   }
 
@@ -415,22 +315,22 @@ static int BeamBlockageMapInternal_getLonLatFields(PolarScan_t* scan, RaveData2D
     for (bi = 0; bi < nbins; bi++) {
       double lonval = 0.0, latval = 0.0;
       if (PolarScan_getLonLatFromIndex(scan, bi, ri, &lonval, &latval)) {
-        RaveData2D_setValue(olon, bi, ri, lonval);
-        RaveData2D_setValue(olat, bi, ri, latval);
+        double v = 0.0;
+        BBTopography_getValueAtLonLat(topo, lonval, latval, &v);
+        BBTopography_setValue(field, bi, ri, v);
       }
     }
   }
 
-  *lat = RAVE_OBJECT_COPY(olat);
-  *lon = RAVE_OBJECT_COPY(olon);
-
-  result = 1;
+  result = RAVE_OBJECT_COPY(field);
 done:
-  RAVE_OBJECT_RELEASE(olon);
-  RAVE_OBJECT_RELEASE(olat);
-
+  RAVE_OBJECT_RELEASE(field);
   return result;
 }
+
+/*@} End of Private functions */
+
+/*@{ Interface functions */
 
 /**
  * Find out which maps are needed to cover given area
@@ -492,11 +392,7 @@ done:
 BBTopography_t* BeamBlockageMap_getTopographyForScan(BeamBlockageMap_t* self, PolarScan_t* scan)
 {
   BBTopography_t *field = NULL, *result = NULL;
-  RaveData2D_t *lon = NULL, *lat = NULL;
   BBTopography_t* topo = NULL;
-  double dlon_min = 0.0, dlon_max = 0.0, dlat_min = 0.0, dlat_max = 0.0;
-  double ddlon = 0.0, ddlat = 0.0;
-  long ulx = 0, uly = 0, llx = 0, lly = 0;
 
   RAVE_ASSERT((self != NULL), "self == NULL");
   if (scan == NULL) {
@@ -511,36 +407,15 @@ BBTopography_t* BeamBlockageMap_getTopographyForScan(BeamBlockageMap_t* self, Po
     goto done;
   }
 
-  if (!BeamBlockageMapInternal_getLonLatFields(scan, &lon, &lat)) {
-    goto done;
-  }
+  field = BeamBlockageMapInternal_createMappedTopography(self, topo, scan);
 
-  if (!BeamBlockageMapInternal_min(lon, &dlon_min) ||
-      !BeamBlockageMapInternal_max(lon, &dlon_max) ||
-      !BeamBlockageMapInternal_min(lat, &dlat_min) ||
-      !BeamBlockageMapInternal_max(lon, &dlat_max)) {
-    goto done;
-  }
-
-  ulx = floor((dlon_min - BBTopography_getUlxmap(topo)) / BBTopography_getXDim(topo)) - 1; /* Min lon */
-  uly = floor((BBTopography_getUlymap(topo) - dlat_max) / BBTopography_getYDim(topo)) - 1; /* Max lat */
-
-  llx = ceil((dlon_max - BBTopography_getUlxmap(topo)) / BBTopography_getYDim(topo)) + 1;  /* Max Lon */
-  //lly = ceil(())
-
-  /*
-  lon_min = floor((dlon_min - BBTopography_getUlxmap(topo)) / BBTopography_getXDim(topo)) - 1;
-  lon_max = ceil((dlon_max - BBTopography_getUlxmap(topo)) / BBTopography_getXDim(topo)) + 1;
-  lat_max = floor((BBTopography_getUlymap(topo) - dlat_max) / BBTopography_getYDim(topo)) - 1;
-  lat_min = ceil((BBTopography_getUlymap(topo) - dlat_min) / BBTopography_getYDim(topo)) + 1;
-  */
   result = RAVE_OBJECT_COPY(field);
 done:
   RAVE_OBJECT_RELEASE(field);
+  RAVE_OBJECT_RELEASE(topo);
   return result;
 }
 
-/*@{ Interface functions */
 int BeamBlockageMap_setTopo30Directory(BeamBlockageMap_t* self, const char* topodirectory)
 {
   char* tmp = NULL;

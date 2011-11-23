@@ -246,6 +246,31 @@ int BBTopography_setValue(BBTopography_t* self, long col, long row, double value
   return RaveData2D_setValue(self->data, col, row, value);
 }
 
+int BBTopography_getValueAtLonLat(BBTopography_t* self, double lon, double lat, double* v)
+{
+  int result = 0;
+  long ci = 0, ri = 0;
+  double nv = 0.0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  RAVE_ASSERT((v != NULL), "v == NULL");
+  *v = self->nodata;
+
+  if (self->xdim == 0.0 || self->ydim == 0.0) {
+    RAVE_CRITICAL0("xdim or ydim == 0.0 in topography field");
+    goto done;
+  }
+
+  ci = (lon - self->ulxmap)/self->xdim;
+  ri = (self->ulymap - lat)/self->ydim;
+  if (RaveData2D_getValue(self->data, ci, ri, &nv)) {
+    *v = nv;
+    result = 1;
+  }
+
+done:
+  return result;
+}
 BBTopography_t* BBTopography_concatX(BBTopography_t* self, BBTopography_t* other)
 {
   BBTopography_t *result = NULL;

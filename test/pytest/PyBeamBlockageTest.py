@@ -31,6 +31,7 @@ import os, string
 import _rave
 
 class PyBeamBlockageTest(unittest.TestCase):
+  SCAN_FILENAME = "fixtures/scan_sevil_20100702T113200Z.h5"
   def setUp(self):
     pass    
 
@@ -50,6 +51,13 @@ class PyBeamBlockageTest(unittest.TestCase):
   def testReadTopo30(self):
     a = _beamblockage.new()
     a.topo30dir="../../data/gtopo30"
+    
+  def test_getBlockage(self):
+    a = _beamblockage.new()
+    a.topo30dir="../../data/gtopo30"
+    scan = _raveio.open(self.SCAN_FILENAME).object
+    result = a.getBlockage(scan, -20.0);
+    print `result.getData()`
     
   
 if __name__ == "__main__":
