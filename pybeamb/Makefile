@@ -91,8 +91,7 @@ install:
 	@cp -v -f $(BEAMBLOCKAGE_TARGET) ${prefix}/share/beamb/pybeamb
 	@cp -v -f $(BEAMBLOCKAGEMAP_TARGET) ${prefix}/share/beamb/pybeamb
 	@cp -v -f $(BBTOPOGRAPHY_TARGET) ${prefix}/share/beamb/pybeamb
-	@cp -v -f *.py ${prefix}/share/beamb/pybeamb
-	@echo "$(prefix)/share/beamb/pybeamb" > "$(SITEPACK_PYTHON)/pybeamb.pth"
+	@-echo "$(prefix)/share/beamb/pybeamb" > "$(SITEPACK_PYTHON)/pybeamb.pth"
 
 .PHONY=clean
 clean:
