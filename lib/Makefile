@@ -84,7 +84,7 @@ clean:
 
 .PHONY=distclean		 
 distclean:	clean
-	@\rm -f $(TARGET)
+	@\rm -f $(TARGET) config.h
 
 # --------------------------------------------------------------------
 # Rules

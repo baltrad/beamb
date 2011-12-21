@@ -56,6 +56,24 @@ int BeamBlockage_setTopo30Directory(BeamBlockage_t* self, const char* topodirect
 const char* BeamBlockage_getTopo30Directory(BeamBlockage_t* self);
 
 /**
+ * Sets the cache directory. Default is the value specified in the
+ * internal config.h file. If set to NULL, then caching is disabled.
+ * @param[in] self - self
+ * @param[in] cachedir - the cache directory
+ * @return 1 on success otherwise 0
+ */
+int BeamBlockage_setCacheDirectory(BeamBlockage_t* self, const char* cachedir);
+
+/**
+ * Returns the cache directory. Default is the value specified in the
+ * internal config.h file. If NULL is returned it means that caching is
+ * disabled.
+ * @param[in] self - self
+ * @return the cache directory or NULL
+ */
+const char* BeamBlockage_getCacheDirectory(BeamBlockage_t* self);
+
+/**
  * Gets the blockage for the provided scan.
  * @param[in] self - self
  * @param[in] scan - the scan to check blockage

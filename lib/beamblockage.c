@@ -30,6 +30,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 #include "rave_alloc.h"
 #include "math.h"
 #include <string.h>
+#include "config.h"
 
 /**
  * Represents the beam blockage algorithm
@@ -37,6 +38,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 struct _BeamBlockage_t {
   RAVE_OBJECT_HEAD /** Always on top */
   BeamBlockageMap_t* mapper; /**< the topography reader */
+  char* cachedir;            /**< the cache directory */
 };
 
 /*@{ Private functions */
@@ -46,15 +48,17 @@ struct _BeamBlockage_t {
 static int BeamBlockage_constructor(RaveCoreObject* obj)
 {
   BeamBlockage_t* self = (BeamBlockage_t*)obj;
+  self->cachedir = NULL;
   self->mapper = RAVE_OBJECT_NEW(&BeamBlockageMap_TYPE);
 
-  if (self->mapper == NULL) {
+  if (self->mapper == NULL || !BeamBlockage_setCacheDirectory(self, BEAMB_CACHE_DIR)) {
 	  goto error;
   }
 
   return 1;
 error:
   RAVE_OBJECT_RELEASE(self->mapper);
+  RAVE_FREE(self->cachedir);
   return 0;
 }
 
@@ -66,6 +70,7 @@ static void BeamBlockage_destructor(RaveCoreObject* obj)
 {
   BeamBlockage_t* self = (BeamBlockage_t*)obj;
   RAVE_OBJECT_RELEASE(self->mapper);
+  RAVE_FREE(self->cachedir);
 }
 
 /**
@@ -76,8 +81,9 @@ static int BeamBlockage_copyconstructor(RaveCoreObject* obj, RaveCoreObject* src
   BeamBlockage_t* this = (BeamBlockage_t*)obj;
   BeamBlockage_t* src = (BeamBlockage_t*)srcobj;
   this->mapper = RAVE_OBJECT_CLONE(src->mapper);
+  this->cachedir = NULL;
 
-  if (this->mapper == NULL) {
+  if (this->mapper == NULL || !BeamBlockage_setCacheDirectory(this, src->cachedir)) {
     goto error;
   }
   return 1;
@@ -156,6 +162,83 @@ static void BeamBlockageInternal_cummax(double* p, long nlen)
   }
 }
 
+/**
+ * Creates a full filename from the information in the scan file and the cache dir name. If
+ * cachedir is NULL, only the filename will be set.
+ * We format the filename like this.
+ *   lon_lat_height_elangle_nrays_nbins_rscale_rstart_beamwidth
+ *   All floating point values except height are represented with 2 decimals
+ *
+ * @param[in] self - self
+ * @param[in] scan - scan
+ * @param[in] filename - the allocated array where the filename should be written
+ * @param[in] len - the length of the allocated array
+ * @return 1 on success otherwise 0
+ */
+static int BeamBlockageInternal_createCacheFilename(BeamBlockage_t* self, PolarScan_t* scan, char* filename, int len)
+{
+  int result = 0;
+  double lat, lon, height, bw, elangle, rscale, rstart;
+  long nrays, nbins;
+  int elen = 0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  RAVE_ASSERT((scan != NULL), "scan == NULL");
+
+  lat = PolarScan_getLatitude(scan) * 180.0 / M_PI;
+  lon = PolarScan_getLongitude(scan) * 180.0 / M_PI;
+  height = PolarScan_getHeight(scan);
+  bw = PolarScan_getBeamwidth(scan) * 180.0 / M_PI;
+  nrays = PolarScan_getNrays(scan);
+  nbins = PolarScan_getNbins(scan);
+  elangle = PolarScan_getElangle(scan) * 180.0 / M_PI;
+  rscale = PolarScan_getRscale(scan);
+  rstart = PolarScan_getRstart(scan);
+
+  if (self->cachedir == NULL) {
+    elen = snprintf(filename, len,
+                    "%.2f_%.2f_%.0f_%.2f_%ld_%ld_%.2f_%.2f_%.2f.h5\n",
+                    lon, lat, height, elangle, nrays, nbins, rscale, rstart, bw);
+  } else {
+    elen = snprintf(filename, len,
+                    "%s/%.2f_%.2f_%.0f_%.2f_%ld_%ld_%.2f_%.2f_%.2f.h5\n",
+                    self->cachedir, lon, lat, height, elangle, nrays, nbins, rscale, rstart, bw);
+  }
+
+  if (elen >= len) {
+    RAVE_ERROR0("Not enough room was created for filename");
+    goto done;
+  }
+
+  result = 1;
+done:
+  return result;
+}
+
+/**
+ * Returns a cached file matching the given scan if there is one.
+ * @param[in] self - self
+ * @param[in] scan - the scan
+ */
+static RaveField_t* BeamBlockageInternal_getCachedFile(BeamBlockage_t* self, PolarScan_t* scan)
+{
+  RaveField_t* result = NULL;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  RAVE_ASSERT((scan != NULL), "scan == NULL");
+
+  if (self->cachedir != NULL) {
+    char filename[512];
+    if (!BeamBlockageInternal_createCacheFilename(self, scan, filename, 512)) {
+      goto done;
+    }
+    fprintf(stderr, "FILENAME: %s\n", filename);
+  }
+
+done:
+  return result;
+}
+
 /*@} End of Private functions */
 
 /*@{ Interface functions */
@@ -169,6 +252,33 @@ const char* BeamBlockage_getTopo30Directory(BeamBlockage_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return (const char*)BeamBlockageMap_getTopo30Directory(self->mapper);
+}
+
+int BeamBlockage_setCacheDirectory(BeamBlockage_t* self, const char* cachedir)
+{
+  char* tmp = NULL;
+  int result = 0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (cachedir != NULL) {
+    tmp = RAVE_STRDUP(cachedir);
+    if (tmp == NULL) {
+      goto done;
+    }
+  }
+  self->cachedir = tmp;
+  tmp = NULL; // Release responsibility for memory
+  result = 1;
+done:
+  RAVE_FREE(tmp);
+  return result;
+}
+
+const char* BeamBlockage_getCacheDirectory(BeamBlockage_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return (const char*)self->cachedir;
 }
 
 RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, double dBlim)
@@ -191,6 +301,9 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
   if (scan == NULL) {
     return NULL;
   }
+
+  BeamBlockageInternal_getCachedFile(self, scan);
+
   navigator = PolarScan_getNavigator(scan);
   if (navigator == NULL) {
     RAVE_ERROR0("Scan does not have a polar navigator instance attached");

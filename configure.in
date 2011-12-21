@@ -8,6 +8,11 @@ if test "${prefix}" = "NONE"; then
 	prefix=/opt/baltrad/beamb
 fi
 
+dnl Since I can not expand the localstatedir I do this instead
+if test "${localstatedir}" = "\${prefix}/var"; then
+    localstatedir="`echo ${prefix}`/var"
+fi
+
 AC_PROG_CC
 
 LIBS=-lm
@@ -175,6 +180,8 @@ if [[ "$HLHDF_SZLIB_LIB" != "" ]]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$HLHDF_SZLIB_LIB" | sed -e"s/[[ \t]]*-L//"`
 fi
 
+BEAMB_CACHE_DIR=`echo $localstatedir`/cache
+
 AC_SUBST(RAVE_ROOT_DIR)
 AC_SUBST(RAVE_INCLUDE_FLAG)
 AC_SUBST(RAVE_LIB_FLAG)
@@ -193,6 +200,7 @@ AC_SUBST(HLHDF_INCLUDE_FLAG)
 AC_SUBST(HLHDF_LIBRARY_FLAG)
 AC_SUBST(HLHDFLDSHARED)
 AC_SUBST(LD_PRINTOUT)
+AC_SUBST(BEAMB_CACHE_DIR)
 
-AC_CONFIG_FILES(def.mk)
+AC_CONFIG_FILES(def.mk lib/config.h)
 AC_OUTPUT
