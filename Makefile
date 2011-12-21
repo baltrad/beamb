@@ -40,7 +40,6 @@ install: def.mk
 	$(MAKE) -C lib install
 	$(MAKE) -C pybeamb install
 	$(MAKE) -C data install
-	$(MAKE) -C config install
 	@echo "################################################################"
 	@echo "To run the binaries you will need to setup your library path to"
 	@echo "LD_LIBRARY_PATH="`cat def.mk | grep LD_PRINTOUT | sed -e"s/LD_PRINTOUT=//"`
@@ -60,9 +59,6 @@ clean:
 	$(MAKE) -C lib clean
 	$(MAKE) -C pybeamb clean
 	$(MAKE) -C data clean
-	#$(MAKE) -C config clean
-	#$(MAKE) -C test/pytest clean
-	#$(MAKE) -C doxygen clean
 	
 
 .PHONY:distclean
