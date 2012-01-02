@@ -1,0 +1,96 @@
+/** \mainpage Beam Blockage (BEAMB)
+\date 2 January 2012
+\author Lars Norin and Anders Henja
+\version 1.0
+\par Copyright 
+&copy; 2012 by the Swedish Meteorological and Hydrological Institute
+(SMHI), Norrk&ouml;ping, Sweden
+
+\par Legals
+BEAMB is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+\par
+BEAMB is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+\par
+You should have received a copy of the GNU Lesser General Public License
+along with BEAMB.  If not, see http://www.gnu.org/licenses/.
+By obtaining, using, and/or copying this software and/or its associated 
+documentation, you agree that you have read, understood, and will comply
+with the following terms and conditions:
+
+\section introduction Introduction
+Beam Blockage has been developed as a software package that shuld be used
+together with RAVE. BEAMB comes bundles with some gtopo30 maps covering
+the baltic sea region. For other coverage the code has to be modified accordingly.
+
+The original software has been developed by Lars Norin and adapted by
+Anders Henja to integrate properly with the RAVE software.
+
+\section installation Installation
+The installation is quite straight forward and there are only 3 different
+parameters that should be specified.
+- --prefix where beamb should be installed (default is /opt/baltrad/beamb)
+- --with-rave where rave installation can be found
+- --localstatedir where the cache files should be stored.
+
+Other than that, it is pretty much the standard configure, make, 
+make test and make install procedure that is necessary.
+
+\verbatim
+%> ./configure --prefix=/opt/n2/beamb --with-rave=/opt/n2/rave --localstatedir=/var
+...
+%> make
+...
+%> make test
+...
+%> make install
+\endverbatim
+
+\section apioverview API Overview
+The beam blockage calculations are quite easy to use. The beam blockage object keeps track of
+the topography handling and mapping so the only thing you really have to do is to provide
+the object with a scan and a limit for the gaussian approximation.
+
+In python, it probably looks something like:
+
+\verbatim
+import _beamblockage
+import _raveio
+
+scan = _raveio.open("scan.h5").object
+
+bb = _beamblockage.new()
+result = a.getBlockage(scan, -20.0);
+
+scan.addQualityField(result)
+
+os = _raveio.new()
+os.object = scan
+os.save("result.h5")
+
+\endverbatim
+
+The default behaviour for beam blockage is to cache the resulting quality fields since they seldom change. These files
+are stored in the localstatedir mentioned in \ref installation. However, you might want to rewrite the cache files or
+even skip using cachefiles. This can be done by specifying
+
+- rewritecache = [True | False]
+  Will rewrite the cache files continously. I.e. basically saves last cache file on disk.
+  
+- cachedir = [path | None]
+  If path is != None, then the cache files will be placed in this directory. If cachedir = None, no caching is performed.
+
+\verbatim
+bb = _beamblockage.new()
+bb.rewritecache = True  # Keep last result in cache directory
+bb.cachedir = None      # Turn of caching
+bb.cachedir = "/tmp"    # Put cache files in the tmp directory
+\endverbatim
+*/
