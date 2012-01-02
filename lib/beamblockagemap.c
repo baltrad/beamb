@@ -173,7 +173,9 @@ static BBTopography_t* BeamBlockageMapInternal_readHeader(BeamBlockageMap_t* sel
     goto done;
   }
 
-  if (!BBTopography_createData(field, ncols, nrows, RaveDataType_SHORT));
+  if (!BBTopography_createData(field, ncols, nrows, RaveDataType_SHORT)) {
+    goto done;
+  }
 
   result = RAVE_OBJECT_COPY(field);
 done:
@@ -241,7 +243,8 @@ static int BeamBlockageMapInternal_fillData(BeamBlockageMap_t* self, const char*
 
   for (col = 0; col < ncols; col++) {
     for (row = 0; row < nrows; row++) {
-      BBTopography_setValue(field, col, row, (double)ntohs((short)(tmp[row*ncols + col])));
+      short temp = ntohs(tmp[row*ncols + col]);
+      BBTopography_setValue(field, col, row, temp);
     }
   }
 
@@ -317,7 +320,12 @@ static BBTopography_t* BeamBlockageMapInternal_createMappedTopography(BeamBlocka
       if (PolarScan_getLonLatFromIndex(scan, bi, ri, &lonval, &latval)) {
         double v = 0.0;
         BBTopography_getValueAtLonLat(topo, lonval, latval, &v);
-        BBTopography_setValue(field, bi, ri, v);
+        /* According to original code, no values < 0 are allowed */
+        if (v < 0.0) {
+          BBTopography_setValue(field, bi, ri, 0.0);
+        } else {
+          BBTopography_setValue(field, bi, ri, v);
+        }
       }
     }
   }

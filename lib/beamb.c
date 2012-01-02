@@ -92,6 +92,12 @@ int main(void)
         radar[1] = 12.826024108; /* Longitude [degrees] */
         radar[2] = 163.61;       /* Altitude [m] */
     }
+    else if (strcmp(radar_name,"vil") == 0)
+    {
+      radar[0] = 58.1059;      /* Latitude [degrees] */
+      radar[1] = 15.9363;      /* Longitude [degrees] */
+      radar[2] = 223.0;        /* Altitude [m] */
+    }
     else
     {
         printf("Unknown radar. Exiting.");

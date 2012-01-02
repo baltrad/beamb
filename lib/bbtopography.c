@@ -263,6 +263,7 @@ int BBTopography_getValueAtLonLat(BBTopography_t* self, double lon, double lat, 
 
   ci = (lon - self->ulxmap)/self->xdim;
   ri = (self->ulymap - lat)/self->ydim;
+
   if (RaveData2D_getValue(self->data, ci, ri, &nv)) {
     *v = nv;
     result = 1;

@@ -180,6 +180,8 @@ static PyObject* _pybeamblockage_getBlockage(PyBeamBlockage* self, PyObject* arg
 static struct PyMethodDef _pybeamblockage_methods[] =
 {
   {"topo30dir", NULL},
+  {"cachedir", NULL},
+  {"rewritecache", NULL},
   {"getBlockage", (PyCFunction)_pybeamblockage_getBlockage, 1},
   {NULL, NULL} /* sentinel */
 };
@@ -198,6 +200,16 @@ static PyObject* _pybeamblockage_getattr(PyBeamBlockage* self, char* name)
     } else {
       Py_RETURN_NONE;
     }
+  } else if (strcmp("cachedir", name) == 0) {
+    const char* str = BeamBlockage_getCacheDirectory(self->beamb);
+    if (str != NULL) {
+      return PyString_FromString(str);
+    } else {
+      Py_RETURN_NONE;
+    }
+  } else if (strcmp("rewritecache", name) == 0) {
+    int val = BeamBlockage_getRewriteCache(self->beamb);
+    return PyBool_FromLong(val);
   }
 
   res = Py_FindMethod(_pybeamblockage_methods, (PyObject*) self, name);
@@ -228,6 +240,22 @@ static int _pybeamblockage_setattr(PyBeamBlockage* self, char* name, PyObject* v
       BeamBlockage_setTopo30Directory(self->beamb, NULL);
     } else {
       raiseException_gotoTag(done, PyExc_ValueError, "topo30dir must be a string or None");
+    }
+  } else if (strcmp("cachedir", name) == 0) {
+    if (PyString_Check(val)) {
+      if (!BeamBlockage_setCacheDirectory(self->beamb, PyString_AsString(val))) {
+        raiseException_gotoTag(done, PyExc_ValueError, "cachedir must be a string or None");
+      }
+    } else if (val == Py_None) {
+      BeamBlockage_setCacheDirectory(self->beamb, NULL);
+    } else {
+      raiseException_gotoTag(done, PyExc_ValueError, "cachedir must be a string or None");
+    }
+  } else if (strcmp("rewritecache", name) == 0) {
+    if (PyBool_Check(val)) {
+      BeamBlockage_setRewriteCache(self->beamb, val == Py_True?1:0);
+    } else {
+      raiseException_gotoTag(done, PyExc_ValueError, "rewritecache must be a boolean");
     }
   } else {
     raiseException_gotoTag(done, PyExc_AttributeError, name);

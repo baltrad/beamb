@@ -1,0 +1,31 @@
+INSTALL instructions for
+BEAM BLOCKAGE MODULE
+  BEAMB
+
+Anders Henja and Lars Norin
+Swedish Meteorological and Hydrological Institute
+
+January 2012
+
+BEAMB is completly dependent on a working RAVE installation so refer
+to RAVEs installation instructions before installing BEAMB.
+
+When you have successfully installed RAVE, you should only need to perform
+the traditional configure, make, make install.
+
+%> ./configure --prefix=/opt/n2/beamb --with-rave=/opt/n2/rave
+%> make
+%> make test
+%> make install
+
+Since beamb keeps a cache with the beam blockage classification, you might want
+to specify an alternative location of the cache-files. The default location is
+<prefix>/var/cache/beamb (/opt/baltrad/beamb/var/cache/beamb). 
+But can be changed by specifying the --localstatedir=<cachedir>. Be aware that
+cache/beamb is always appended to the cache path which means that
+the following configure call:
+
+%> ./configure ... --localstatedir=/var
+
+would create a directory called /var/cache/beamb during installation.
+

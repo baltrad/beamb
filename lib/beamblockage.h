@@ -74,10 +74,25 @@ int BeamBlockage_setCacheDirectory(BeamBlockage_t* self, const char* cachedir);
 const char* BeamBlockage_getCacheDirectory(BeamBlockage_t* self);
 
 /**
+ * Sets if the cache should be recreated all the time. (Default 0)
+ * @param[in] self - self
+ * @param[in] recreateCache - if cache should be recreated, defaults to 0 which is no
+ */
+void BeamBlockage_setRewriteCache(BeamBlockage_t* self, int recreateCache);
+
+/**
+ * Returns if the cache is recreated each time.
+ * @param[in] self - self
+ * @return if cache is recreated or not. Defaults to 0 which is no
+ */
+int BeamBlockage_getRewriteCache(BeamBlockage_t* self);
+
+/**
  * Gets the blockage for the provided scan.
  * @param[in] self - self
  * @param[in] scan - the scan to check blockage
- * @param[in] dBlim -
+ * @param[in] dBlim - Limit of Gaussian approximation of main lobe
+ *
  * @return the beam blockage field
  */
 RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, double dBlim);

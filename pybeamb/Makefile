@@ -44,7 +44,7 @@ LDFLAGS+= $(EXPAT_LIB_DIR)
 EXPAT_LIBRARY=-lexpat
 endif
 
-LIBRARIES=-lhlhdf -lproj  $(EXPAT_LIBRARY) -lravetransform -lravepyapi -lbeamb
+LIBRARIES= -lbeamb -lravetransform -lravepyapi -lhlhdf -lproj $(EXPAT_LIBRARY)
 
 # --------------------------------------------------------------------
 # Fixed definitions

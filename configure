@@ -2742,7 +2742,7 @@ if [ "$HLHDF_SZLIB_LIB" != "" ]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$HLHDF_SZLIB_LIB" | sed -e"s/[ \t]*-L//"`
 fi
 
-BEAMB_CACHE_DIR=`echo $localstatedir`/cache
+BEAMB_CACHE_DIR=`echo $localstatedir`/cache/beamb
 
 
 

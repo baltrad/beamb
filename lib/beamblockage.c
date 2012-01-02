@@ -31,6 +31,8 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 #include "math.h"
 #include <string.h>
 #include "config.h"
+#include "hlhdf.h"
+#include "odim_io_utilities.h"
 
 /**
  * Represents the beam blockage algorithm
@@ -39,6 +41,7 @@ struct _BeamBlockage_t {
   RAVE_OBJECT_HEAD /** Always on top */
   BeamBlockageMap_t* mapper; /**< the topography reader */
   char* cachedir;            /**< the cache directory */
+  int rewritecache;         /**< if cache should be recreated */
 };
 
 /*@{ Private functions */
@@ -50,6 +53,7 @@ static int BeamBlockage_constructor(RaveCoreObject* obj)
   BeamBlockage_t* self = (BeamBlockage_t*)obj;
   self->cachedir = NULL;
   self->mapper = RAVE_OBJECT_NEW(&BeamBlockageMap_TYPE);
+  self->rewritecache = 0;
 
   if (self->mapper == NULL || !BeamBlockage_setCacheDirectory(self, BEAMB_CACHE_DIR)) {
 	  goto error;
@@ -82,6 +86,7 @@ static int BeamBlockage_copyconstructor(RaveCoreObject* obj, RaveCoreObject* src
   BeamBlockage_t* src = (BeamBlockage_t*)srcobj;
   this->mapper = RAVE_OBJECT_CLONE(src->mapper);
   this->cachedir = NULL;
+  this->rewritecache = src->rewritecache;
 
   if (this->mapper == NULL || !BeamBlockage_setCacheDirectory(this, src->cachedir)) {
     goto error;
@@ -171,11 +176,12 @@ static void BeamBlockageInternal_cummax(double* p, long nlen)
  *
  * @param[in] self - self
  * @param[in] scan - scan
+ * @param[in] dblim - Limit of Gaussian approximation of main lobe
  * @param[in] filename - the allocated array where the filename should be written
  * @param[in] len - the length of the allocated array
  * @return 1 on success otherwise 0
  */
-static int BeamBlockageInternal_createCacheFilename(BeamBlockage_t* self, PolarScan_t* scan, char* filename, int len)
+static int BeamBlockageInternal_createCacheFilename(BeamBlockage_t* self, PolarScan_t* scan, double dblim, char* filename, int len)
 {
   int result = 0;
   double lat, lon, height, bw, elangle, rscale, rstart;
@@ -197,12 +203,12 @@ static int BeamBlockageInternal_createCacheFilename(BeamBlockage_t* self, PolarS
 
   if (self->cachedir == NULL) {
     elen = snprintf(filename, len,
-                    "%.2f_%.2f_%.0f_%.2f_%ld_%ld_%.2f_%.2f_%.2f.h5\n",
-                    lon, lat, height, elangle, nrays, nbins, rscale, rstart, bw);
+                    "%.2f_%.2f_%.0f_%.2f_%ld_%ld_%.2f_%.2f_%.2f_%.2f.h5",
+                    lon, lat, height, elangle, nrays, nbins, rscale, rstart, bw, dblim);
   } else {
     elen = snprintf(filename, len,
-                    "%s/%.2f_%.2f_%.0f_%.2f_%ld_%ld_%.2f_%.2f_%.2f.h5\n",
-                    self->cachedir, lon, lat, height, elangle, nrays, nbins, rscale, rstart, bw);
+                    "%s/%.2f_%.2f_%.0f_%.2f_%ld_%ld_%.2f_%.2f_%.2f_%.2f.h5",
+                    self->cachedir, lon, lat, height, elangle, nrays, nbins, rscale, rstart, bw, dblim);
   }
 
   if (elen >= len) {
@@ -215,27 +221,137 @@ done:
   return result;
 }
 
+static int BeamBlockageInternal_addMetaInformation(RaveField_t* field, double gain, double offset)
+{
+  RaveAttribute_t* attribute = NULL;
+  int result = 0;
+
+  attribute = RaveAttributeHelp_createString("how/task", "se.smhi.detector.beamblockage");
+  if (attribute == NULL || !RaveField_addAttribute(field, attribute)) {
+    RAVE_ERROR0("Failed to add how/task");
+    goto done;
+  }
+  RAVE_OBJECT_RELEASE(attribute);
+
+  attribute = RaveAttributeHelp_createDouble("what/gain", gain);
+  if (attribute == NULL || !RaveField_addAttribute(field, attribute)) {
+    RAVE_ERROR0("Failed to add what/gain");
+    goto done;
+  }
+  RAVE_OBJECT_RELEASE(attribute);
+
+  attribute = RaveAttributeHelp_createDouble("what/offset", offset);
+  if (attribute == NULL || !RaveField_addAttribute(field, attribute)) {
+    RAVE_ERROR0("Failed to add what/offset");
+    goto done;
+  }
+  RAVE_OBJECT_RELEASE(attribute);
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(attribute);
+  return result;
+}
+
 /**
  * Returns a cached file matching the given scan if there is one.
  * @param[in] self - self
  * @param[in] scan - the scan
+ * @param[in] dblim - Limit of Gaussian approximation of main lobe
  */
-static RaveField_t* BeamBlockageInternal_getCachedFile(BeamBlockage_t* self, PolarScan_t* scan)
+static RaveField_t* BeamBlockageInternal_getCachedFile(BeamBlockage_t* self, PolarScan_t* scan, double dblim)
 {
   RaveField_t* result = NULL;
+  HL_NodeList* nodelist = NULL;
 
   RAVE_ASSERT((self != NULL), "self == NULL");
   RAVE_ASSERT((scan != NULL), "scan == NULL");
 
   if (self->cachedir != NULL) {
     char filename[512];
-    if (!BeamBlockageInternal_createCacheFilename(self, scan, filename, 512)) {
+    if (!BeamBlockageInternal_createCacheFilename(self, scan, dblim, filename, 512)) {
       goto done;
     }
-    fprintf(stderr, "FILENAME: %s\n", filename);
+
+    if(HL_isHDF5File(filename)) {
+      nodelist =  HLNodeList_read(filename);
+      if (nodelist == NULL) {
+        RAVE_ERROR1("Failed to read hdf5 file %s", filename);
+        goto done;
+      }
+      HLNodeList_selectAllNodes(nodelist);
+      if (!HLNodeList_fetchMarkedNodes(nodelist)) {
+        RAVE_ERROR1("Failed to load hdf5 file '%s'", filename);
+        goto done;
+      }
+
+      result = OdimIoUtilities_loadField(nodelist, "/beamb_field");
+    }
   }
 
 done:
+  HLNodeList_free(nodelist);
+  return result;
+}
+
+/**
+ * Writes a rave field to the cache. There is no particular file properties or
+ * compressions used.
+ * @param[in] self - self
+ * @param[in] scan - the scan
+ * @param[in] field - the rave field
+ * @param[in] dblim - Limit of Gaussian approximation of main lobe
+ * @return 1 on success otherwise 0
+ */
+static int BeamBlockageInternal_writeCachedFile(BeamBlockage_t* self, PolarScan_t* scan, RaveField_t* field, double dblim)
+{
+  int result = 0;
+  HL_NodeList* nodelist = NULL;
+  HL_Compression* compression = NULL;
+  HL_FileCreationProperty* property = NULL;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  RAVE_ASSERT((scan != NULL), "scan == NULL");
+  RAVE_ASSERT((field != NULL), "field == NULL");
+
+  if (self->cachedir != NULL) {
+    char filename[512];
+    if (!BeamBlockageInternal_createCacheFilename(self, scan, dblim, filename, 512)) {
+      goto done;
+    }
+    compression = HLCompression_new(CT_ZLIB);
+    property = HLFileCreationProperty_new();
+    nodelist = HLNodeList_new();
+
+    if (nodelist == NULL || compression == NULL || property == NULL) {
+      RAVE_ERROR0("Failed to create necessary hlhdf objects");
+      goto done;
+    }
+    compression->level = (int)6;
+    property->userblock = (hsize_t)0;
+    property->sizes.sizeof_size = (size_t)4;
+    property->sizes.sizeof_addr = (size_t)4;
+    property->sym_k.ik = (int)1;
+    property->sym_k.lk = (int)1;
+    property->istore_k = (long)1;
+    property->meta_block_size = (long)0;
+
+    result = OdimIoUtilities_addRaveField(field, nodelist, "/beamb_field");
+    if (result == 1) {
+      result = HLNodeList_setFileName(nodelist, filename);
+    }
+    if (result == 1) {
+      result = HLNodeList_write(nodelist, property, compression);
+    }
+  } else {
+    result = 1; /* We always succeed when there is no cache file to be written */
+  }
+
+done:
+  HLCompression_free(compression);
+  HLFileCreationProperty_free(property);
+  HLNodeList_free(nodelist);
+
   return result;
 }
 
@@ -281,6 +397,17 @@ const char* BeamBlockage_getCacheDirectory(BeamBlockage_t* self)
   return (const char*)self->cachedir;
 }
 
+void BeamBlockage_setRewriteCache(BeamBlockage_t* self, int recreateCache)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  self->rewritecache = recreateCache;
+}
+
+int BeamBlockage_getRewriteCache(BeamBlockage_t* self)
+{
+  return self->rewritecache;
+}
+
 RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, double dBlim)
 {
   RaveField_t *field = NULL, *result = NULL;
@@ -296,13 +423,23 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
   double c, elLim, bb_tot;
   double elBlock = 0.0;
 
+  /* We want range to be between 0 - 255 as unsigned char */
+  double gain = 1 / 255.0;
+  double offset = 0.0;
+
   RAVE_ASSERT((self != NULL), "self == NULL");
 
   if (scan == NULL) {
     return NULL;
   }
 
-  BeamBlockageInternal_getCachedFile(self, scan);
+  if (self->rewritecache == 0) {
+    /* If we want to recreate cache, there is no meaning to read the cached file */
+    field = BeamBlockageInternal_getCachedFile(self, scan, dBlim);
+    if (field != NULL) {
+      return field; /* We already have what we want so return before we do anything else */
+    }
+  }
 
   navigator = PolarScan_getNavigator(scan);
   if (navigator == NULL) {
@@ -324,7 +461,7 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
   nrays = PolarScan_getNrays(scan);
 
   field = RAVE_OBJECT_NEW(&RaveField_TYPE);
-  if (field == NULL || !RaveField_createData(field, nbins, nrays, RaveDataType_DOUBLE)) {
+  if (field == NULL || !RaveField_createData(field, nbins, nrays, RaveDataType_UCHAR)) {
     goto done;
   }
 
@@ -337,8 +474,8 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
   R = 1.0/((1.0/RE) + PolarNavigator_getDndh(navigator));
   height = PolarNavigator_getAlt0(navigator);
 
-  beamwidth = PolarScan_getBeamwidth(scan);
-  elangle = PolarScan_getElangle(scan);
+  beamwidth = PolarScan_getBeamwidth(scan) * 180.0 / M_PI;
+  elangle = PolarScan_getElangle(scan) * 180.0 / M_PI;
 
   /* Width of Gaussian */
   c = -((beamwidth/2.0)*(beamwidth/2.0))/log(0.5);
@@ -354,8 +491,6 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
       double v = 0.0;
       BBTopography_getValue(topo, bi, ri, &v);
       phi[bi] = asin((((v+R)*(v+R)) - (groundRange[bi]*groundRange[bi]) - ((R+height)*(R+height))) / (2*groundRange[bi]*(R+height)));
-      //fprintf(stderr, "ri=%d, bi=%d => phi(%d) = %f\n", ri, bi, bi, phi[bi]);
-      //phi[j] = asin((pow(v + R, 2) - pow(groundRange[bi],2) - pow(R + height,2) ) / (2*groundRange[bi]*(R+height)));
     }
     BeamBlockageInternal_cummax(phi, nbins);
 
@@ -369,10 +504,22 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
         elBlock = elangle + elLim;
       }
       bbval = -1.0/2.0 * sqrt(M_PI * c) * (erf((elangle - elBlock)/sqrt(c)) - erf(elLim/sqrt(c)))/bb_tot;
+      if (bbval < 0.0) {
+        bbval = 0.0;
+      } else if (bbval > 1.0) {
+        bbval = 1.0;
+      }
+      bbval = (bbval - offset) / gain;
       RaveField_setValue(field, bi, ri, bbval);
-      /*bb[i*ri+j] = -1./2. * sqrt(M_PI*c) * ( erf( (el-elBlock[i*ri+j]) / \
-                      sqrt(c) ) - erf( (el-(el-elLim))/sqrt(c) ) ) / bb_tot; */
     }
+  }
+
+  if (!BeamBlockageInternal_addMetaInformation(field, gain, offset)) {
+    goto done;
+  }
+
+  if (!BeamBlockageInternal_writeCachedFile(self, scan, field, dBlim)) {
+    RAVE_ERROR0("Failed to generate cache file");
   }
 
   result = RAVE_OBJECT_COPY(field);

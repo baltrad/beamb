@@ -74,6 +74,7 @@ $(TARGET): $(DEPDIR) $(OBJECTS)
 install:
 	@mkdir -p ${prefix}/include/
 	@mkdir -p ${prefix}/lib/
+	@mkdir -p ${BEAMB_CACHE_DIR}
 	@cp -v -f *.h ${prefix}/include/
 	@cp -v -f $(TARGET) ${prefix}/lib/
 

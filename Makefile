@@ -66,7 +66,5 @@ distclean:
 	$(MAKE) -C lib distclean
 	$(MAKE) -C pybeamb distclean
 	$(MAKE) -C data distclean
-	#$(MAKE) -C doxygen distclean
-	#$(MAKE) -C config distclean
-	#$(MAKE) -C test/pytest distclean
+	$(MAKE) -C test/pytest distclean
 	@\rm -f *~ config.log config.status def.mk

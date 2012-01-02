@@ -7,3 +7,5 @@
 *.pyc
 Debug
 
+lib/config.h
+def.mk
