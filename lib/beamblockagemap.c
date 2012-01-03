@@ -31,6 +31,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 #include "polarnav.h"
 #include <stdio.h>
 #include <arpa/inet.h>
+#include "config.h"
 
 /**
  * Represents the beam blockage algorithm
@@ -61,13 +62,14 @@ static int BeamBlockageMap_constructor(RaveCoreObject* obj)
   self->topodir = NULL;
   self->navigator = RAVE_OBJECT_NEW(&PolarNavigator_TYPE);
 
-  if (self->navigator == NULL) {
+  if (self->navigator == NULL || !BeamBlockageMap_setTopo30Directory(self, BEAMB_GTOPO30_DIR)) {
     goto error;
   }
 
   return 1;
 error:
   RAVE_OBJECT_RELEASE(self->navigator);
+  RAVE_FREE(self->topodir);
   return 0;
 }
 

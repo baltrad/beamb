@@ -42,6 +42,11 @@ HLHDF_INCLUDE_FLAG= @HLHDF_INCLUDE_FLAG@
 #
 BEAMB_CACHE_DIR= @BEAMB_CACHE_DIR@
 
+#
+# GTOPO30 files are stored here
+#
+BEAMB_GTOPO30_DIR= @BEAMB_GTOPO30_DIR@
+
 # Special flag to be used for printouts of the necessary LD_LIBRARY_PATH
 #
 LD_PRINTOUT=        @LD_PRINTOUT@

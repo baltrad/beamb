@@ -563,6 +563,7 @@ PACKAGE_URL=''
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+BEAMB_GTOPO30_DIR
 BEAMB_CACHE_DIR
 LD_PRINTOUT
 HLHDFLDSHARED
@@ -2743,6 +2744,8 @@ if [ "$HLHDF_SZLIB_LIB" != "" ]; then
 fi
 
 BEAMB_CACHE_DIR=`echo $localstatedir`/cache/beamb
+BEAMB_GTOPO30_DIR=`echo $prefix`/share/beamb/data/gtopo30
+
 
 
 

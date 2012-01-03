@@ -17,10 +17,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 ------------------------------------------------------------------------*/
 /**
- * Basic configuration file containing path information
+ * Basic configuration file containing path information. Created by configure.
+ *
  * @file
  * @author Anders Henja (SMHI)
  * @date 2011-12-21
  */
- 
+
+/**
+ * The cache directory where the quality fields are stored
+ */
 #define BEAMB_CACHE_DIR "@BEAMB_CACHE_DIR@"
+
+/**
+ * Location where the gtopo30 files are stored.
+ */
+#define BEAMB_GTOPO30_DIR "@BEAMB_GTOPO30_DIR@"
