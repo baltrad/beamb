@@ -62,7 +62,6 @@ class PyBeamBlockageTest(unittest.TestCase):
   def testTopo30(self):
     a = _beamblockage.new()
     self.assertTrue(None != a.topo30dir)
-    self.assertTrue(os.path.exists("%s/E020N90.DEM" % a.topo30dir))
     a.topo30dir="/tmp"
     self.assertEquals("/tmp", a.topo30dir)
 
