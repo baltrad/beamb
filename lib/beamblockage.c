@@ -383,6 +383,7 @@ int BeamBlockage_setCacheDirectory(BeamBlockage_t* self, const char* cachedir)
       goto done;
     }
   }
+  RAVE_FREE(self->cachedir);
   self->cachedir = tmp;
   tmp = NULL; // Release responsibility for memory
   result = 1;
