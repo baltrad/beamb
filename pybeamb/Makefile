@@ -87,10 +87,11 @@ $(BBTOPOGRAPHY_TARGET): $(DEPDIR) $(BBTOPOGRAPHY_OBJECTS) ../lib/libbeamb.so
 	
 .PHONY=install
 install:
-	@mkdir -p ${prefix}/share/beamb/pybeamb
-	@cp -v -f $(BEAMBLOCKAGE_TARGET) ${prefix}/share/beamb/pybeamb
-	@cp -v -f $(BEAMBLOCKAGEMAP_TARGET) ${prefix}/share/beamb/pybeamb
-	@cp -v -f $(BBTOPOGRAPHY_TARGET) ${prefix}/share/beamb/pybeamb
+	@mkdir -p "${prefix}/share/beamb/pybeamb"
+	@cp -v -f $(BEAMBLOCKAGE_TARGET) "${prefix}/share/beamb/pybeamb/"
+	@cp -v -f $(BEAMBLOCKAGEMAP_TARGET) "${prefix}/share/beamb/pybeamb/"
+	@cp -v -f $(BBTOPOGRAPHY_TARGET) "${prefix}/share/beamb/pybeamb/"
+	@cp -v -f *.py "${prefix}/share/beamb/pybeamb/"
 	@-echo "$(prefix)/share/beamb/pybeamb" > "$(SITEPACK_PYTHON)/pybeamb.pth"
 
 .PHONY=clean
