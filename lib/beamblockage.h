@@ -97,4 +97,14 @@ int BeamBlockage_getRewriteCache(BeamBlockage_t* self);
  */
 RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, double dBlim);
 
+/**
+ * When you have retrieved the beam blockage field you can restore the specified parameter
+ * for the scan.
+ * @param[in] scan - the scan that was provided to the getBlockage function
+ * @param[in] blockage - the result from the call to getBlockage
+ * @param[in] quantity - the parameter to be restored. If NULL, it defaults to DBZH
+ * @param[in] threshold - the percentage threshold
+ */
+int BeamBlockage_restore(PolarScan_t* scan, RaveField_t* blockage, const char* quantity, double threshold);
+
 #endif /* BEAMBLOCKAGE_H */

@@ -44,6 +44,12 @@ struct _BeamBlockage_t {
   int rewritecache;         /**< if cache should be recreated */
 };
 
+/**
+ * Converts a radian to a degree
+ * @param[in] rad - input value expressed in radians
+ */
+#define RAD2DEG(rad) (rad*180.0/M_PI)
+
 /*@{ Private functions */
 /**
  * Constructor.
@@ -253,6 +259,50 @@ done:
   return result;
 }
 
+static int BeamBlockageInternal_getMetaInformation(RaveField_t* field, double* gain, double* offset)
+{
+  int result = 0;
+  RaveAttribute_t* attribute = NULL;
+  char* svalue = NULL;
+
+  RAVE_ASSERT((field != NULL), "field == NULL");
+  RAVE_ASSERT((gain != NULL), "gain == NULL");
+  RAVE_ASSERT((offset != NULL), "offset == NULL");
+
+  attribute = RaveField_getAttribute(field, "how/task");
+  if (attribute == NULL || !RaveAttribute_getString(attribute, &svalue)) {
+    RAVE_ERROR0("how/task missing");
+    goto done;
+  }
+  if (svalue == NULL || strcmp("se.smhi.detector.beamblockage", svalue) != 0) {
+    if (svalue == NULL) {
+      RAVE_ERROR0("how/task == NULL");
+    } else {
+      RAVE_ERROR1("how/task = %s", svalue);
+    }
+    goto done;
+  }
+  RAVE_OBJECT_RELEASE(attribute);
+
+  attribute = RaveField_getAttribute(field, "what/gain");
+  if (attribute == NULL || !RaveAttribute_getDouble(attribute, gain)) {
+    RAVE_ERROR0("Missing what/gain");
+    goto done;
+  }
+  RAVE_OBJECT_RELEASE(attribute);
+
+  attribute = RaveField_getAttribute(field, "what/offset");
+  if (attribute == NULL || !RaveAttribute_getDouble(attribute, offset)) {
+    RAVE_ERROR0("Missing what/offset");
+    goto done;
+  }
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(attribute);
+  return result;
+}
+
 /**
  * Returns a cached file matching the given scan if there is one.
  * @param[in] self - self
@@ -353,16 +403,6 @@ done:
   HLNodeList_free(nodelist);
 
   return result;
-}
-
-/**
- * Convert radians to degrees
- * @param[in] rad - input value expressed in radians
- * @returns value converted to degrees
- */
-double rad2deg(double rad)
-{
-    return rad*180./M_PI;
 }
 
 /*@} End of Private functions */
@@ -501,7 +541,7 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
     for (bi = 0; bi < nbins; bi++) {
       double v = 0.0;
       BBTopography_getValue(topo, bi, ri, &v);
-      phi[bi] = rad2deg(asin((((v+R)*(v+R)) - (groundRange[bi]*groundRange[bi]) - ((R+height)*(R+height))) / (2*groundRange[bi]*(R+height))));
+      phi[bi] = RAD2DEG(asin((((v+R)*(v+R)) - (groundRange[bi]*groundRange[bi]) - ((R+height)*(R+height))) / (2*groundRange[bi]*(R+height))));
     }
     BeamBlockageInternal_cummax(phi, nbins);
 
@@ -541,6 +581,78 @@ done:
   RAVE_OBJECT_RELEASE(topo);
   RAVE_FREE(phi);
   RAVE_FREE(groundRange);
+  return result;
+}
+
+int BeamBlockage_restore(PolarScan_t* scan, RaveField_t* blockage, const char* quantity, double threshold)
+{
+  int result = 0;
+  PolarScanParam_t* parameter = NULL;
+  double gain, offset, nodata;
+  long ri, bi, nrays, nbins;
+  double bbgain, bboffset;
+  double iv, ov, bbraw, bbpercent, bbdbz, dbz;
+  RaveValueType rvt;
+
+  if (scan == NULL || blockage == NULL) {
+    RAVE_ERROR0("Need to provide both scan and field containing blockage.");
+    goto done;
+  }
+
+  if (!BeamBlockageInternal_getMetaInformation(blockage, &bbgain, &bboffset)) {
+    RAVE_ERROR0("Could not get meta information from blockage field.");
+    goto done;
+  }
+
+  if (quantity == NULL) {
+    parameter = PolarScan_getParameter(scan, "DBZH");
+  } else {
+    parameter = PolarScan_getParameter(scan, quantity);
+  }
+  if (parameter == NULL) {
+    RAVE_ERROR1("No parameter with quantity %s in scan", quantity);
+    goto done;
+  }
+
+  gain = PolarScanParam_getGain(parameter);
+  offset = PolarScanParam_getOffset(parameter);
+  nodata = PolarScanParam_getNodata(parameter);
+  nrays = PolarScanParam_getNrays(parameter);
+  nbins = PolarScanParam_getNbins(parameter);
+
+  if (nrays != RaveField_getYsize(blockage) || nbins != RaveField_getXsize(blockage)) {
+    RAVE_ERROR0("field and scan dimensions must be the same");
+    goto done;
+  }
+
+  for (ri = 0; ri < nrays; ri++) {
+    for (bi = 0; bi < nbins; bi++) {
+      rvt = PolarScanParam_getConvertedValue(parameter, bi, ri, &iv);
+      if (rvt == RaveValueType_DATA) {
+        RaveField_getValue(blockage, bi, ri, &bbraw);
+        bbpercent = bbgain * bbraw + bboffset;
+        if (bbpercent < 0.0 || bbpercent > 1.0) {
+          RAVE_ERROR0("beamb values are out of bounds, check scaling");
+          goto done;
+        }
+        if (bbpercent < threshold) {
+          bbdbz = (10*log(-1.0/(bbpercent-1)))/log(10.);
+          dbz = iv + bbdbz;  /* This is the corrected reflectivity */
+          ov = (dbz - offset) / gain;
+
+          if (ov > nodata - 1)
+            ov = nodata - 1;
+          PolarScanParam_setValue(parameter, bi, ri, ov);
+        } else {
+          PolarScanParam_setValue(parameter, bi, ri, nodata);  /* Uncorrectable */
+        }
+      }
+    }
+  }
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(parameter);
   return result;
 }
 

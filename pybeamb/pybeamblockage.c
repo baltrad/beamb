@@ -146,6 +146,35 @@ static PyObject* _pybeamblockage_new(PyObject* self, PyObject* args)
 }
 
 /**
+ * Restores the provided scan with the beam blockage field.
+ * @param[in] self - this instance
+ * @param[in] args - (OOsf), (scan, field, quantity, threshold value)
+ * @returns None
+ */
+static PyObject* _pybeamblockage_restore(PyObject* self, PyObject* args)
+{
+  PyObject *o1 = NULL, *o2 = NULL;
+  char* quantity = NULL;
+  double threshold = 0.0;
+
+  if (!PyArg_ParseTuple(args, "OOsf", &o1, &o2, &quantity, &threshold)) {
+    return NULL;
+  }
+
+  if (!PyPolarScan_Check(o1)) {
+    raiseException_returnNULL(PyExc_TypeError, "First argument should be a PolarScan");
+  }
+  if (!PyRaveField_Check(o2)) {
+    raiseException_returnNULL(PyExc_TypeError, "Second argument should be a PolarScan");
+  }
+
+  if (!BeamBlockage_restore(((PyPolarScan*)o1)->scan, ((PyRaveField*)o2)->field, quantity, threshold)) {
+    raiseException_returnNULL(PyExc_RuntimeError, "Failed to restore scan");
+  }
+  Py_RETURN_NONE;
+}
+
+/**
  * Returns the blockage for the provided scan given gaussian limit.
  * @param[in] self - self
  * @param[in] args - the arguments (PyPolarScan, double (Limit of Gaussian approximation of main lobe))
@@ -299,6 +328,7 @@ PyTypeObject PyBeamBlockage_Type =
 /*@{ Module setup */
 static PyMethodDef functions[] = {
   {"new", (PyCFunction)_pybeamblockage_new, 1},
+  {"restore", (PyCFunction)_pybeamblockage_restore, 1},
   {NULL,NULL} /*Sentinel*/
 };
 

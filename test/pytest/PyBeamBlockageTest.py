@@ -29,6 +29,7 @@ import _raveio
 import _beamblockage
 import os, string
 import _rave
+import _ravefield
 import numpy
 
 class PyBeamBlockageTest(unittest.TestCase):
@@ -165,6 +166,69 @@ class PyBeamBlockageTest(unittest.TestCase):
     self.assertTrue(os.path.isfile(self.CACHEFILE_3))
     c2stat = os.stat(self.CACHEFILE_2)
 
+  def test_restore(self):
+    a = _beamblockage.new()
+    a.topo30dir="../../data/gtopo30"
+    a.cachedir="/tmp"
+    a.rewritecache=True
+    scan = _raveio.open(self.FIXTURE_2).object
+    blockage = a.getBlockage(scan, -20.0);
+
+    restored = _beamblockage.restore(scan, blockage, "DBZH", 0.5)
+
+  def test_restore_proper_field(self):
+    scan = _raveio.open(self.FIXTURE_2).object
+
+    field = _ravefield.new()
+    field.setData(numpy.zeros((scan.nrays, scan.nbins), numpy.uint8))
+    field.addAttribute("how/task", "se.smhi.detector.beamblockage")
+    field.addAttribute("what/gain", 1.0)
+    field.addAttribute("what/offset", 0.0)
+        
+    _beamblockage.restore(scan, field, "DBZH", 0.5)
+    
+  def test_restore_missing_howtask(self):
+    scan = _raveio.open(self.FIXTURE_2).object
+
+    field = _ravefield.new()
+    field.setData(numpy.zeros((scan.nrays, scan.nbins), numpy.uint8))
+    field.addAttribute("what/gain", 1.0)
+    field.addAttribute("what/offset", 0.0)
+
+    try:        
+      _beamblockage.restore(scan, field, "DBZH", 0.5)
+      self.fail("Expected RuntimeError due to missing how/task")
+    except RuntimeError:
+      pass
+    
+  def test_restore_missing_whatgain(self):
+    scan = _raveio.open(self.FIXTURE_2).object
+
+    field = _ravefield.new()
+    field.setData(numpy.zeros((scan.nrays, scan.nbins), numpy.uint8))
+    field.addAttribute("how/task", "se.smhi.detector.beamblockage")
+    field.addAttribute("what/offset", 0.0)
+
+    try:        
+      _beamblockage.restore(scan, field, "DBZH", 0.5)
+      self.fail("Expected RuntimeError due to missing how/gain")
+    except RuntimeError:
+      pass
+
+  def test_restore_missing_whatoffset(self):
+    scan = _raveio.open(self.FIXTURE_2).object
+
+    field = _ravefield.new()
+    field.setData(numpy.zeros((scan.nrays, scan.nbins), numpy.uint8))
+    field.addAttribute("how/task", "se.smhi.detector.beamblockage")
+    field.addAttribute("what/gain", 1.0)
+
+    try:        
+      _beamblockage.restore(scan, field, "DBZH", 0.5)
+      self.fail("Expected RuntimeError due to missing how/offset")
+    except RuntimeError:
+      pass
+    
 if __name__ == "__main__":
   #import sys;sys.argv = ['', 'Test.testName']
   unittest.main()
