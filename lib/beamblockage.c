@@ -355,6 +355,16 @@ done:
   return result;
 }
 
+/**
+ * Convert radians to degrees
+ * @param[in] rad - input value expressed in radians
+ * @returns value converted to degrees
+ */
+double rad2deg(double rad)
+{
+    return rad*180./M_PI;
+}
+
 /*@} End of Private functions */
 
 /*@{ Interface functions */
@@ -491,7 +501,7 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
     for (bi = 0; bi < nbins; bi++) {
       double v = 0.0;
       BBTopography_getValue(topo, bi, ri, &v);
-      phi[bi] = asin((((v+R)*(v+R)) - (groundRange[bi]*groundRange[bi]) - ((R+height)*(R+height))) / (2*groundRange[bi]*(R+height)));
+      phi[bi] = rad2deg(asin((((v+R)*(v+R)) - (groundRange[bi]*groundRange[bi]) - ((R+height)*(R+height))) / (2*groundRange[bi]*(R+height))));
     }
     BeamBlockageInternal_cummax(phi, nbins);
 
@@ -505,6 +515,7 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
         elBlock = elangle + elLim;
       }
       bbval = -1.0/2.0 * sqrt(M_PI * c) * (erf((elangle - elBlock)/sqrt(c)) - erf(elLim/sqrt(c)))/bb_tot;
+
       if (bbval < 0.0) {
         bbval = 0.0;
       } else if (bbval > 1.0) {

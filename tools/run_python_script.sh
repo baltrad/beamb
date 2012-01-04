@@ -29,16 +29,16 @@ RAVE_ROOT_MKFILE="$RAVE_ROOT_DIR/mkf/def.mk"
 HLHDF_MKFFILE=`fgrep HLHDF_HLDEF_MK_FILE "${RAVE_ROOT_MKFILE}" | sed -e"s/\(HLHDF_HLDEF_MK_FILE=[ \t]*\)//"`
 
 # Get HDF5s ld path from hlhdfs mkf file
-HDF5_LDPATH=`fgrep HDF5_LIBDIR "${HLHDF_MKFFILE}" | sed -e"s/\(HDF5_LIBDIR=[ \t]*-L\)//"`
+HDF5_LDPATH=`fgrep HDF5_LIBDIR "${HLHDF_MKFFILE}" | sed -e"s/\(HDF5_LIBDIR=[ \t]*\)//" | sed -e"s/\-L//"`
 
 # Get HLHDFs libpath from raves mkf file
-HLHDF_LDPATH=`fgrep HLHDF_LIB_DIR "${DEF_MK_FILE}" | sed -e"s/\(HLHDF_LIB_DIR=[ \t]*\)//"`
+HLHDF_LDPATH=`fgrep HLHDF_LIB_DIR "${RAVE_ROOT_MKFILE}" | sed -e"s/\(HLHDF_LIB_DIR=[ \t]*\)//"`
 
 BNAME=`python -c 'from distutils import util; import sys; print "lib.%s-%s" % (util.get_platform(), sys.version[0:3])'`
 
 RBPATH="${SCRIPTPATH}/../pybeamb"
 RAVE_LDPATH="${RAVE_ROOT_DIR}/lib"
-RACK_LDPATH="${SCRIPTPATH}/../lib"
+MY_LDPATH=`pwd`"/lib"
 XRUNNERPATH="${SCRIPTPATH}/../test/lib"
 
 # Special hack for mac osx.
@@ -54,15 +54,15 @@ esac
 
 if [ "x$ISMACOS" = "xyes" ]; then
   if [ "$DYLD_LIBRARY_PATH" != "" ]; then
-    export DYLD_LIBRARY_PATH="${RACK_LDPATH}:${RAVE_LDPATH}:${HLHDF_LDPATH}:${HDF5_LDPATH}:${LD_LIBRARY_PATH}"
+    export DYLD_LIBRARY_PATH="${MY_LDPATH}:${RAVE_LDPATH}:${HLHDF_LDPATH}:${HDF5_LDPATH}:${DYLD_LIBRARY_PATH}"
   else
-    export DYLD_LIBRARY_PATH="${RACK_LDPATH}:${RAVE_LDPATH}:${HLHDF_LDPATH}:${HDF5_LDPATH}"
+    export DYLD_LIBRARY_PATH="${MY_LDPATH}:${RAVE_LDPATH}:${HLHDF_LDPATH}:${HDF5_LDPATH}"
   fi
 else
   if [ "$LD_LIBRARY_PATH" != "" ]; then
-    export LD_LIBRARY_PATH="${RACK_LDPATH}:${RAVE_LDPATH}:${HLHDF_LDPATH}:${HDF5_LDPATH}:${LD_LIBRARY_PATH}"
+    export LD_LIBRARY_PATH="${MY_LDPATH}:${RAVE_LDPATH}:${HLHDF_LDPATH}:${HDF5_LDPATH}:${LD_LIBRARY_PATH}"
   else
-    export LD_LIBRARY_PATH="${RACK_LDPATH}:${RAVE_LDPATH}:${HLHDF_LDPATH}:${HDF5_LDPATH}"
+    export LD_LIBRARY_PATH="${MY_LDPATH}:${RAVE_LDPATH}:${HLHDF_LDPATH}:${HDF5_LDPATH}"
   fi
 fi
 
