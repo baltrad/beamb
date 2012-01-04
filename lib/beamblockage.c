@@ -628,23 +628,23 @@ int BeamBlockage_restore(PolarScan_t* scan, RaveField_t* blockage, const char* q
   for (ri = 0; ri < nrays; ri++) {
     for (bi = 0; bi < nbins; bi++) {
       rvt = PolarScanParam_getConvertedValue(parameter, bi, ri, &iv);
-      if (rvt == RaveValueType_DATA) {
+      if ((rvt == RaveValueType_DATA) || (rvt == RaveValueType_UNDETECT)) {
         RaveField_getValue(blockage, bi, ri, &bbraw);
         bbpercent = bbgain * bbraw + bboffset;
-        if (bbpercent < 0.0 || bbpercent > 1.0) {
+        if (bbpercent < 0.0 && bbpercent > 1.0) {
           RAVE_ERROR0("beamb values are out of bounds, check scaling");
           goto done;
         }
-        if (bbpercent < threshold) {
+        if ((bbpercent < threshold) && (rvt == RaveValueType_DATA)) {
           bbdbz = (10*log(-1.0/(bbpercent-1)))/log(10.);
           dbz = iv + bbdbz;  /* This is the corrected reflectivity */
           ov = (dbz - offset) / gain;
 
-          if (ov > nodata - 1)
-            ov = nodata - 1;
+/*           if (ov > nodata - 1) */ /* Risky to use and not to use... */
+/*             ov = nodata - 1; */
           PolarScanParam_setValue(parameter, bi, ri, ov);
-        } else {
-          PolarScanParam_setValue(parameter, bi, ri, nodata);  /* Uncorrectable */
+        } else if (bbpercent >= threshold) {
+	  PolarScanParam_setValue(parameter, bi, ri, nodata);  /* Uncorrectable */
         }
       }
     }

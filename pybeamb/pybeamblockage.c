@@ -157,7 +157,7 @@ static PyObject* _pybeamblockage_restore(PyObject* self, PyObject* args)
   char* quantity = NULL;
   double threshold = 0.0;
 
-  if (!PyArg_ParseTuple(args, "OOsf", &o1, &o2, &quantity, &threshold)) {
+  if (!PyArg_ParseTuple(args, "OOsd", &o1, &o2, &quantity, &threshold)) {
     return NULL;
   }
 
