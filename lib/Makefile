@@ -24,24 +24,9 @@
 ###########################################################################
 -include ../def.mk
 
-# Ropo specific c flags
+# c flags, use rave suggested ones
 #
-CFLAGS= $(SHARED_FLAG) $(CCOPTS) $(DEFS) -I. \
-			$(RAVE_INCLUDE_FLAG) $(HLHDF_INCLUDE_FLAG) $(ZLIB_INCDIR) \
-			$(HDF5_INCDIR) $(PROJ_INCLUDE_FLAG)
-
-# Linker flags
-#
-LDFLAGS= -L. $(RAVE_LIB_FLAG) $(HLHDF_LIBRARY_FLAG) $(ZLIB_LIBDIR) \
-			$(HDF5_LIBDIR) $(PROJ_LIB_FLAG) 
-
-# We also need to ensure that raves expat requirements are managed
-EXPAT_LIBRARY=
-ifeq ($(EXPAT_SUPPRESSED), no)
-CFLAGS+= $(EXPAT_INCLUDE_DIR) -DRAVE_XML_SUPPORTED
-LDFLAGS+= $(EXPAT_LIB_DIR)
-EXPAT_LIBRARY=-lexpat
-endif
+CFLAGS= -I. $(RAVE_MODULE_CFLAGS)
 
 # --------------------------------------------------------------------
 # Fixed definitions
