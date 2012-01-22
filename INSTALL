@@ -13,7 +13,7 @@ to RAVEs installation instructions before installing BEAMB.
 When you have successfully installed RAVE, you should only need to perform
 the traditional configure, make, make install.
 
-%> ./configure --prefix=/opt/n2/beamb --with-rave=/opt/n2/rave
+%> ./configure --prefix=/opt/baltrad/beamb --with-rave=/opt/baltrad/rave
 %> make
 %> make test
 %> make install
@@ -21,7 +21,7 @@ the traditional configure, make, make install.
 Since beamb keeps a cache with the beam blockage classification, you might want
 to specify an alternative location of the cache-files. The default location is
 <prefix>/var/cache/beamb (/opt/baltrad/beamb/var/cache/beamb). 
-But can be changed by specifying the --localstatedir=<cachedir>. Be aware that
+It can be changed by specifying the --localstatedir=<cachedir>. Be aware that
 cache/beamb is always appended to the cache path which means that
 the following configure call:
 
