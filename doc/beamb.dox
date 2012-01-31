@@ -27,8 +27,19 @@ with the following terms and conditions:
 
 \section introduction Introduction
 Beam Blockage has been developed as a software package that should be used
-together with RAVE. BEAMB comes bundled with some GTOPO30 DEMs covering
-most of Europe. For other coverage the code has to be modified accordingly.
+together with RAVE. BEAMB comes bundled with two GTOPO30 DEMs covering
+most of Europe starting at 40 degrees North. These so-called "tiles" are
+called W020N90 and E020N90. The code base is prepared to process data using
+W060N90, W020N40, and E020N40, but you have to get and install these yourself.
+
+GTOPO30 resides at http://www1.gsi.go.jp/geowww/globalmap-gsi/gtopo30/gtopo30.html  
+
+BEAMB does not modify GTOPO tiles at all; it just uses them as they are. 
+This means that processing data consumes a lot of memory, especially if your
+radar covers an area with topography from more than one tile. However, keep 
+in mind that BEAMB processes a beam-blockage result for a unique location and 
+scan geometry only once, and the result is cached and used subsequently each time
+the analysis for that scan is requested.
 
 The original software has been developed by Lars Norin and adapted by
 Anders Henja to integrate properly with the RAVE software.

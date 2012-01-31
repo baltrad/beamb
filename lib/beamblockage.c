@@ -473,6 +473,7 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
   double beamwidth = 0.0, elangle = 0.0;
   double c, elLim, bb_tot;
   double elBlock = 0.0;
+  double gtopo_alt0 = 0.0, gtmp = 0.0;
 
   /* We want range to be between 0 - 255 as unsigned char */
   double gain = 1 / 255.0;
@@ -524,6 +525,21 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
   RE = PolarNavigator_getEarthRadiusOrigin(navigator);
   R = 1.0/((1.0/RE) + PolarNavigator_getDndh(navigator));
   height = PolarNavigator_getAlt0(navigator);
+
+  /* Determine topography's height at the radar's position
+   * and use it if it is higher. Even add a short "tower"
+   * to get the feed-horn's height above the ground.
+   * Remember: this is a guess for dealing with cases where
+   * the radar's height may be unknown or inconsistent with the DEM. */
+  for (ri = 0; ri < nrays; ri++) {
+    BBTopography_getValue(topo, 0, ri, &gtmp);
+    if (gtopo_alt0 > gtmp) {
+      gtopo_alt0 = gtmp;
+    }
+  }  /* Assume a 5 m antenna radius (S-band) */
+  if ((gtopo_alt0+5.0) > height) {
+    height = gtopo_alt0 + 5.0;
+  }
 
   beamwidth = PolarScan_getBeamwidth(scan) * 180.0 / M_PI;
   elangle = PolarScan_getElangle(scan) * 180.0 / M_PI;

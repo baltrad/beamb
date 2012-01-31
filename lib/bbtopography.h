@@ -207,7 +207,7 @@ int BBTopography_getValueAtLonLat(BBTopography_t* self, double lon, double lat, 
 
 /**
  * Concatenates two topography fields horizontally with each other.
- * The fields and others y-dimension must be the same as well as the data
+ * The field's and other's y-dimension must be the same as well as the data
  * type. It is also necessary that ydim and xdim are the same. All other
  * attribute values will be taken from the first field.
  *
@@ -216,5 +216,17 @@ int BBTopography_getValueAtLonLat(BBTopography_t* self, double lon, double lat, 
  * @returns the concatenated field on success otherwise NULL
  */
 BBTopography_t* BBTopography_concatX(BBTopography_t* self, BBTopography_t* other);
+
+/**
+ * Concatenates two topography fields vertically with each other.
+ * The field's and other's x-dimension must be the same as well as the data
+ * type. It is also necessary that ydim and xdim are the same. All other
+ * attribute values will be taken from the first field.
+ *
+ * @param[in] self - self
+ * @param[in] other - the field to contatenate
+ * @returns the concatenated field on success otherwise NULL
+ */
+BBTopography_t* BBTopography_concatY(BBTopography_t* self, BBTopography_t* other);
 
 #endif /* BBTOPOGRAPHY_H */

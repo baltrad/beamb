@@ -272,6 +272,7 @@ int BBTopography_getValueAtLonLat(BBTopography_t* self, double lon, double lat, 
 done:
   return result;
 }
+
 BBTopography_t* BBTopography_concatX(BBTopography_t* self, BBTopography_t* other)
 {
   BBTopography_t *result = NULL;
@@ -286,11 +287,49 @@ BBTopography_t* BBTopography_concatX(BBTopography_t* self, BBTopography_t* other
   if (BBTopography_getNrows(self) != BBTopography_getNrows(other) ||
       BBTopography_getXDim(self) != BBTopography_getXDim(other) ||
       BBTopography_getYDim(self) != BBTopography_getYDim(other)) {
-    RAVE_ERROR0("Can not concatenate two topography fields that doesn't have same nrows/xdim and ydim values");
+    RAVE_ERROR0("Cannot concatenate two topography fields that don't have same nrows/xdim and ydim values");
     return NULL;
   }
 
   dfield = RaveData2D_concatX(self->data, other->data);
+  if (dfield != NULL) {
+    result = RAVE_OBJECT_NEW(&BBTopography_TYPE);
+    if (result == NULL) {
+      RAVE_ERROR0("Failed to create topography field");
+    } else {
+      RAVE_OBJECT_RELEASE(result->data);
+      result->data = RAVE_OBJECT_COPY(dfield);
+      BBTopography_setNodata(result, BBTopography_getNodata(self));
+      BBTopography_setUlxmap(result, BBTopography_getUlxmap(self));
+      BBTopography_setUlymap(result, BBTopography_getUlymap(self));
+      BBTopography_setXDim(result, BBTopography_getXDim(self));
+      BBTopography_setYDim(result, BBTopography_getYDim(self));
+    }
+  }
+
+  RAVE_OBJECT_RELEASE(dfield);
+  return result;
+}
+
+BBTopography_t* BBTopography_concatY(BBTopography_t* self, BBTopography_t* other)
+{
+  BBTopography_t *result = NULL;
+  RaveData2D_t* dfield = NULL;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  if (other == NULL) {
+    RAVE_ERROR0("Trying to concatenate self with NULL");
+    return NULL;
+  }
+
+  if (BBTopography_getNcols(self) != BBTopography_getNcols(other) ||
+      BBTopography_getXDim(self) != BBTopography_getXDim(other) ||
+      BBTopography_getYDim(self) != BBTopography_getYDim(other)) {
+    RAVE_ERROR0("Cannot concatenate two topography fields that don't have same nrows/xdim and ydim values");
+    return NULL;
+  }
+
+  dfield = RaveData2D_concatY(self->data, other->data);
   if (dfield != NULL) {
     result = RAVE_OBJECT_NEW(&BBTopography_TYPE);
     if (result == NULL) {

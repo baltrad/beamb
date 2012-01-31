@@ -279,6 +279,34 @@ done:
 }
 
 /**
+ * Concatenates two fields y-wise.
+ * @param[in] self - self
+ * @param[in] args - the other rave field object
+ * @return a topography object on success otherwise NULL
+ */
+static PyObject* _pybbtopography_concaty(PyBBTopography* self, PyObject* args)
+{
+  PyObject* result = NULL;
+  PyObject* pyin = NULL;
+  BBTopography_t *field = NULL;
+  if (!PyArg_ParseTuple(args, "O", &pyin)) {
+    return NULL;
+  }
+  if (!PyBBTopography_Check(pyin)) {
+    raiseException_returnNULL(PyExc_ValueError, "Argument must be another topography field");
+  }
+  field = BBTopography_concatY(self->topo, ((PyBBTopography*)pyin)->topo);
+  if (field == NULL) {
+    raiseException_gotoTag(done, PyExc_ValueError, "Failed to concatenate fields");
+  }
+
+  result = (PyObject*)PyBBTopography_New(field);
+done:
+  RAVE_OBJECT_RELEASE(field);
+  return result;
+}
+
+/**
  * All methods a topography instance can have
  */
 static struct PyMethodDef _pybbtopography_methods[] =
@@ -295,6 +323,7 @@ static struct PyMethodDef _pybbtopography_methods[] =
   {"setData", (PyCFunction)_pybbtopography_setData, 1},
   {"getData", (PyCFunction)_pybbtopography_getData, 1},
   {"concatx", (PyCFunction)_pybbtopography_concatx, 1},
+  {"concaty", (PyCFunction)_pybbtopography_concaty, 1},
   {NULL, NULL} /* sentinel */
 };
 

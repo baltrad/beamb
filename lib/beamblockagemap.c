@@ -369,21 +369,28 @@ BBTopography_t* BeamBlockageMap_readTopography(BeamBlockageMap_t* self, double l
   lat_n = asin( sin(lat) * cos(d/earthRadius) + cos(lat) * sin(d/earthRadius) * cos(0.) );
   lat_s = asin( sin(lat) * cos(d/earthRadius) + cos(lat) * sin(d/earthRadius) * cos(M_PI) );
 
-  if (RAD2DEG(lat_n) > 80.0 || RAD2DEG(lat_s) < 40.0 || RAD2DEG(lon_w) < -20.0 || RAD2DEG(lon_e) > 60.0) {
+  if (RAD2DEG(lat_n) > 80.0 || RAD2DEG(lat_s) < -10.0 || RAD2DEG(lon_w) < -60.0 || RAD2DEG(lon_e) > 60.0) {  /* dBm */
     RAVE_ERROR0("Topography maps does not cover requested area");
     goto done;
-  } else if (RAD2DEG(lon_e) <= 20.0) {
+
+  /* Top three tiles covering Europe */
+  } else if ( (RAD2DEG(lat_s) >= 40.0) && (RAD2DEG(lon_w) >= -60.0) && (RAD2DEG(lon_e) <= -20.0) ) {
+    // Read W060N90
+    if ((field = BeamBlockageMapInternal_readTopography(self, "W060N90")) == NULL) {
+      goto done;
+    }
+  } else if ( (RAD2DEG(lat_s) >= 40.0) && (RAD2DEG(lon_w) >= -20.0) && (RAD2DEG(lon_e) <= 20.0) ) {
     // Read W020N90
     if ((field = BeamBlockageMapInternal_readTopography(self, "W020N90")) == NULL) {
       goto done;
     }
-  } else if (RAD2DEG(lon_w) > 20.0) {
+  } else if ( (RAD2DEG(lat_s) >= 40.0) && (RAD2DEG(lon_w) >= 20.0) && (RAD2DEG(lon_e) <= 60.0) ) {
     // Read E020N90
     if ((field = BeamBlockageMapInternal_readTopography(self, "E020N90")) == NULL) {
       goto done;
     }
-  } else {
-    // Read both
+  } else if ( (RAD2DEG(lat_s) >= 40.0) && (RAD2DEG(lon_w) >= -20.0) && (RAD2DEG(lon_e) > 20.0) ) {
+    // Read W020N90 and E020N90
     BBTopography_t *field2 = BeamBlockageMapInternal_readTopography(self, "W020N90");
     BBTopography_t *field3 = BeamBlockageMapInternal_readTopography(self, "E020N90");
     if (field2 != NULL && field3 != NULL) {
@@ -391,6 +398,78 @@ BBTopography_t* BeamBlockageMap_readTopography(BeamBlockageMap_t* self, double l
     }
     RAVE_OBJECT_RELEASE(field2);
     RAVE_OBJECT_RELEASE(field3);
+  } else if ( (RAD2DEG(lat_s) >= 40.0) && (RAD2DEG(lon_w) >= -60.0) && (RAD2DEG(lon_e) > -20.0) ) {
+    // Read W060N90 and W020N90
+    BBTopography_t *field2 = BeamBlockageMapInternal_readTopography(self, "W060N90");
+    BBTopography_t *field3 = BeamBlockageMapInternal_readTopography(self, "W020N90");
+    if (field2 != NULL && field3 != NULL) {
+      field = BBTopography_concatX(field2, field3);
+    }
+    RAVE_OBJECT_RELEASE(field2);
+    RAVE_OBJECT_RELEASE(field3);
+
+  /* Lower two tiles covering Europe and most of Africa and the Middle East */
+  } else if ( (RAD2DEG(lat_n) <= 40.0) && (RAD2DEG(lon_w) >= -20.0) && (RAD2DEG(lon_e) <= 20.0) ) {
+    // Read W020N40
+    if ((field = BeamBlockageMapInternal_readTopography(self, "W020N40")) == NULL) {
+      goto done;
+    }
+  } else if ( (RAD2DEG(lat_n) <= 40.0) && (RAD2DEG(lon_w) >= 20.0) && (RAD2DEG(lon_e) <= 60.0) ) {
+    // Read E020N40
+    if ((field = BeamBlockageMapInternal_readTopography(self, "E020N40")) == NULL) {
+      goto done;
+    }
+  } else if ( (RAD2DEG(lat_n) <= 40.0) && (RAD2DEG(lon_w) <= 20.0) && (RAD2DEG(lon_e) > 20.0) ) {
+    // Read W020N40 and E020N40
+    BBTopography_t *field2 = BeamBlockageMapInternal_readTopography(self, "W020N40");
+    BBTopography_t *field3 = BeamBlockageMapInternal_readTopography(self, "E020N40");
+    if (field2 != NULL && field3 != NULL) {
+      field = BBTopography_concatX(field2, field3);
+    }
+    RAVE_OBJECT_RELEASE(field2);
+    RAVE_OBJECT_RELEASE(field3);
+
+  /* Vertical tiling of W020N90 and W020N40 */
+  } else if ( (RAD2DEG(lat_n) > 40.0) && (RAD2DEG(lat_s) <= 40.0) && (RAD2DEG(lon_w) >= -20.0) && (RAD2DEG(lon_e) <= 20.0) ) {
+    // Read W020N90 and W020N40
+    BBTopography_t *field2 = BeamBlockageMapInternal_readTopography(self, "W020N90");
+    BBTopography_t *field3 = BeamBlockageMapInternal_readTopography(self, "W020N40");
+    if (field2 != NULL && field3 != NULL) {
+      field = BBTopography_concatY(field2, field3);
+    }
+    RAVE_OBJECT_RELEASE(field2);
+    RAVE_OBJECT_RELEASE(field3);
+
+  /* Vertical tiling of E020N90 and E020N40 */
+  } else if ( (RAD2DEG(lat_n) > 40.0) && (RAD2DEG(lat_s) <= 40.0) && (RAD2DEG(lon_w) >= -20.0) && (RAD2DEG(lon_e) <= 20.0) ) {
+    // Read E020N90 and E020N40
+    BBTopography_t *field2 = BeamBlockageMapInternal_readTopography(self, "E020N90");
+    BBTopography_t *field3 = BeamBlockageMapInternal_readTopography(self, "E020N40");
+    if (field2 != NULL && field3 != NULL) {
+      field = BBTopography_concatY(field2, field3);
+    }
+    RAVE_OBJECT_RELEASE(field2);
+    RAVE_OBJECT_RELEASE(field3);
+
+  /* Horizontal and vertical tiling of first W020E90 and E020N90, and then W020N40 and E020N40 */
+  } else if ( (RAD2DEG(lat_n) > 40.0) && (RAD2DEG(lat_s) <= 40.0) && (RAD2DEG(lon_w) <= 20.0) && (RAD2DEG(lon_e) > 20.0) ) {
+    // Read W020N90, E020N90, W020N40, E020N40
+    BBTopography_t *field2 = BeamBlockageMapInternal_readTopography(self, "W020N90");
+    BBTopography_t *field3 = BeamBlockageMapInternal_readTopography(self, "E020N90");
+    BBTopography_t *field4 = BeamBlockageMapInternal_readTopography(self, "W020N40");
+    BBTopography_t *field5 = BeamBlockageMapInternal_readTopography(self, "E020N40");
+    if (field2 != NULL && field3 != NULL && field4 != NULL && field5 != NULL) {
+      BBTopography_t *field6 = BBTopography_concatX(field2, field3);
+      BBTopography_t *field7 = BBTopography_concatX(field4, field5);
+      field = BBTopography_concatY(field6, field7);
+      RAVE_OBJECT_RELEASE(field6);
+      RAVE_OBJECT_RELEASE(field7);
+    }
+    RAVE_OBJECT_RELEASE(field2);
+    RAVE_OBJECT_RELEASE(field3);
+    RAVE_OBJECT_RELEASE(field4);
+    RAVE_OBJECT_RELEASE(field5);
+
   }
 
   result = RAVE_OBJECT_COPY(field);
