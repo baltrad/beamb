@@ -533,7 +533,7 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
    * the radar's height may be unknown or inconsistent with the DEM. */
   for (ri = 0; ri < nrays; ri++) {
     BBTopography_getValue(topo, 0, ri, &gtmp);
-    if (gtopo_alt0 > gtmp) {
+    if (gtmp > gtopo_alt0) {
       gtopo_alt0 = gtmp;
     }
   }  /* Assume a 5 m antenna radius (S-band) */
