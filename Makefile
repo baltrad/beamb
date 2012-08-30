@@ -40,6 +40,7 @@ install: def.mk
 	$(MAKE) -C lib install
 	$(MAKE) -C pybeamb install
 	$(MAKE) -C data install
+	$(MAKE) -C bin install
 	@echo "################################################################"
 	@echo "To run the binaries you will need to setup your library path to"
 	@echo "LD_LIBRARY_PATH="`cat def.mk | grep LD_PRINTOUT | sed -e"s/LD_PRINTOUT=//"`

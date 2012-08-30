@@ -1,0 +1,123 @@
+#!/usr/bin/env python
+'''
+Copyright (C) 2012- Swedish Meteorological and Hydrological Institute (SMHI)
+
+This file is part of the beamb extension to RAVE.
+
+RAVE is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+RAVE is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with RAVE.  If not, see <http://www.gnu.org/licenses/>.
+'''
+## Beam-blockage identification and correction
+## as a BALTRAD binary tool.
+
+## @file
+## @author Daniel Michelson, SMHI
+## @date 2012-08-30
+
+import _raveio
+import _polarvolume
+import _beamblockage
+from Proj import rd
+
+
+# -----------------------------------------------------------------------------
+## Run BEAMB beam-blockage identification and correction on a SCAN.
+# @param scan input SCAN
+# @param options input options from the command line
+# @return the same SCAN
+def process_scan(scan, options):
+    if scan.elangle*rd < options.elevation:
+        bb = _beamblockage.new()
+        result = bb.getBlockage(scan, options.beamwidth)
+        restored = _beamblockage.restore(scan, result, options.quantity, options.restore)
+        scan.addQualityField(result)
+    else:
+        print "Ignoring scan with elevation angle %3.1f degrees" % (scan.elangle*rd)
+    return scan
+
+
+## Run BEAMB beam-blockage identification and correction on a PVOL.
+# @param pvol input polar volume
+# @param options input options from the command line
+# @return new output polar volume
+def process_pvol(pvol, options):
+    new = _polarvolume.new()
+    new.date, new.time, new.source = pvol.date, pvol.time, pvol.source
+    new.latitude, new.longitude = pvol.latitude, pvol.longitude
+    new.height, new.beamwidth = pvol.height, pvol.beamwidth
+
+    for i in range(pvol.getNumberOfScans()):
+        scan = pvol.getScan(i)
+        scan = process_scan(scan, options)
+        if scan.height > new.height: new.height = scan.height
+
+        new.addScan(scan)
+    return new
+
+
+if __name__ == "__main__":
+    import sys
+    from optparse import OptionParser
+
+    usage = "usage: %prog -i <infile> -o <outfile> [args] [h]"
+    usage += "\n\nBeam-blockage detection and correction."
+    usage += "\nThis command-line tool has been built for the BALTRAD toolbox."
+    usage += "\n\nIf no output file is given, the input file will be over-written."
+    parser = OptionParser(usage=usage)
+
+    parser.add_option("-i", "--input", dest="infile",
+                      help="Name of input file to read. Can be either a polar scan or volume.")
+
+    parser.add_option("-o", "--output", dest="outfile",
+                      help="Name of output file to write. If not given, input file will be over-written.")
+
+    parser.add_option("-b", "--beamwidth", dest="beamwidth", default=-6.0, type="float",
+                      help="Specifies the half-power beamwidth to apply when analyzing the degree of beam blockage. NOTE that this does not have to be the radar's real half-power beamwidth. Defaults to -6.0 degrees.")
+
+    parser.add_option("-r", "--restore", dest="restore", default=0.7, type="float",
+                      help="Specifies the upper threshold on how much beam blockage is accepted to be corrected. Sectors blocked more than this value are blocked out by assigning them the 'nodata' value. Defaults to 0.7 (70 %).")
+    
+    parser.add_option("-q", "--quantity", dest="quantity", default="DBZH",
+                      help="Specifies the quantity to work with, default 'DBZH'.")
+    
+    parser.add_option("-e", "--max-elev", dest="elevation", default=2.0, type="float",
+                      help="Specifies the elevation angle under which data are processed. Defaults to 2.0 degrees.")
+
+    (options, args) = parser.parse_args()
+
+    if options.infile != None:
+        rio = _raveio.open(options.infile)
+
+        if rio.objectType not in (_raveio.Rave_ObjectType_PVOL, _raveio.Rave_ObjectType_SCAN):
+            print "Input file must be either polar scan or volume. Exiting ..."
+            sys.exit(1)
+
+        elif rio.objectType == _raveio.Rave_ObjectType_PVOL:
+            ret = process_pvol(rio.object, options)
+
+        elif rio.objectType == _raveio.Rave_ObjectType_SCAN:
+            ret = process_scan(rio.object, options)
+            #copy_topwhat(rio.object, ret)
+            
+        output = _raveio.new()
+        output.object = ret
+        if options.outfile:
+            output.filename = options.outfile
+        else:
+            output.filename = options.infile
+        output.save()        
+        
+    else:
+        parser.print_help()
+        sys.exit(1)
+
