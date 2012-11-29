@@ -69,11 +69,13 @@ if __name__ == "__main__":
     import sys
     from optparse import OptionParser
 
+    description = "Beam-blockage detection and correction on the command line." 
+
     usage = "usage: %prog -i <infile> -o <outfile> [args] [h]"
-    usage += "\n\nBeam-blockage detection and correction."
-    usage += "\nThis command-line tool has been built for the BALTRAD toolbox."
-    usage += "\n\nIf no output file is given, the input file will be over-written."
-    parser = OptionParser(usage=usage)
+#    usage += "\n\nBeam-blockage detection and correction."
+#    usage += "\nThis command-line tool has been built for the BALTRAD toolbox."
+#    usage += "\n\nIf no output file is given, the input file will be over-written."
+    parser = OptionParser(usage=usage, description=description)
 
     parser.add_option("-i", "--input", dest="infile",
                       help="Name of input file to read. Can be either a polar scan or volume.")
@@ -82,7 +84,7 @@ if __name__ == "__main__":
                       help="Name of output file to write. If not given, input file will be over-written.")
 
     parser.add_option("-b", "--beamwidth", dest="beamwidth", default=-6.0, type="float",
-                      help="Specifies the half-power beamwidth to apply when analyzing the degree of beam blockage. NOTE that this does not have to be the radar's real half-power beamwidth. Defaults to -6.0 degrees.")
+                      help="Specifies the limit of the Gaussian approximation of the beamwidth (in dB) to apply when analyzing the degree of beam blockage. NOTE that this does not have to be the radar's half-power beamwidth. Defaults to -6.0 dB.")
 
     parser.add_option("-r", "--restore", dest="restore", default=0.7, type="float",
                       help="Specifies the upper threshold on how much beam blockage is accepted to be corrected. Sectors blocked more than this value are blocked out by assigning them the 'nodata' value. Defaults to 0.7 (70 %).")

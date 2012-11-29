@@ -369,12 +369,8 @@ BBTopography_t* BeamBlockageMap_readTopography(BeamBlockageMap_t* self, double l
   lat_n = asin( sin(lat) * cos(d/earthRadius) + cos(lat) * sin(d/earthRadius) * cos(0.) );
   lat_s = asin( sin(lat) * cos(d/earthRadius) + cos(lat) * sin(d/earthRadius) * cos(M_PI) );
 
-  if (RAD2DEG(lat_n) > 80.0 || RAD2DEG(lat_s) < -10.0 || RAD2DEG(lon_w) < -60.0 || RAD2DEG(lon_e) > 60.0) {  /* dBm */
-    RAVE_ERROR0("Topography maps does not cover requested area");
-    goto done;
-
   /* Top three tiles covering Europe */
-  } else if ( (RAD2DEG(lat_s) >= 40.0) && (RAD2DEG(lon_w) >= -60.0) && (RAD2DEG(lon_e) <= -20.0) ) {
+  if ( (RAD2DEG(lat_s) >= 40.0) && (RAD2DEG(lon_w) >= -60.0) && (RAD2DEG(lon_e) <= -20.0) ) {
     // Read W060N90
     if ((field = BeamBlockageMapInternal_readTopography(self, "W060N90")) == NULL) {
       goto done;
@@ -470,6 +466,18 @@ BBTopography_t* BeamBlockageMap_readTopography(BeamBlockageMap_t* self, double l
     RAVE_OBJECT_RELEASE(field4);
     RAVE_OBJECT_RELEASE(field5);
 
+  /* Read E140S10 covering eastern Australia and New Zealand
+   * NOTE that the following conditions might need revision in future. */
+  } else if ( (RAD2DEG(lat_n) <= -10.0) && (RAD2DEG(lon_e) >= 140.0) ) {
+    // Read E140S10
+    if ((field = BeamBlockageMapInternal_readTopography(self, "E140S10")) == NULL) {
+      goto done;
+    }
+  }
+
+  else {
+    RAVE_ERROR0("Topography maps do not cover requested area");
+    goto done;
   }
 
   result = RAVE_OBJECT_COPY(field);

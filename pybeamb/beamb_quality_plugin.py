@@ -32,7 +32,7 @@ import _beamblockage
 ##
 # The limit of the Gaussian approximation of main lobe
 #
-BEAMBLOCKAGE_DBLIMIT=-20
+BEAMBLOCKAGE_DBLIMIT=-6.0
 
 ##
 # The beam blockage quality plugin
