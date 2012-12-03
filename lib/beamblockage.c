@@ -652,7 +652,7 @@ int BeamBlockage_restore(PolarScan_t* scan, RaveField_t* blockage, const char* q
           goto done;
         }
         if ((bbpercent < threshold) && (rvt == RaveValueType_DATA)) {
-          bbdbz = 10 * (log10(1.0/(1.0-bbpercent)));
+          bbdbz = 10 * (log10(1.0/(pow(1.0-bbpercent,2)))); /* Two-way correction */
           dbz = iv + bbdbz;  /* This is the corrected reflectivity */
           ov = round((dbz - offset) / gain);
 
