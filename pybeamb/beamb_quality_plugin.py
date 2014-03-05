@@ -33,6 +33,7 @@ import _beamblockage
 # The limit of the Gaussian approximation of main lobe
 #
 BEAMBLOCKAGE_DBLIMIT=-6.0
+BEAMBLOCKAGE_BBLIMIT= 1.1
 
 ##
 # The beam blockage quality plugin
@@ -51,10 +52,16 @@ class beamb_quality_plugin(rave_quality_plugin):
   _cachedir = None
   
   ##
-  # The default beamblockage gaussian approximation main lobe. Defaults to BEAMBLOCKAGE_DBLIMIT
+  # The default beam blockage Gaussian approximation main lobe. Defaults to BEAMBLOCKAGE_DBLIMIT
   #
   _dblimit = BEAMBLOCKAGE_DBLIMIT
-  
+
+  ##
+  # The default percent beam blockage (divided by 100). Defaults to BEAMBLOCKAGE_BBLIMIT which 
+  # is set to 110% so that no radar data will be masked to NODATA.
+  #
+  _bblimit = BEAMBLOCKAGE_BBLIMIT
+    
   ##
   # Default constructor
   def __init__(self):
@@ -81,6 +88,7 @@ class beamb_quality_plugin(rave_quality_plugin):
             bb = self._create_bb()
             scan = obj.getScan(i)
             result = bb.getBlockage(scan, self._dblimit)
+            restored = _beamblockage.restore(scan, result, "DBZH", self._bblimit)
             scan.addQualityField(result)
       except Exception,e:
         pass

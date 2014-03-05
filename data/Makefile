@@ -46,6 +46,10 @@ clean:
 distclean:	clean
 	@\rm -fr gtopo30
 
+.PHONY=clean_cache
+clean_cache:
+	@\rm -f ${prefix}/var/cache/beamb/*
+
 # --------------------------------------------------------------------
 # Rules
 

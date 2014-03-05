@@ -577,7 +577,8 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
       } else if (bbval > 1.0) {
         bbval = 1.0;
       }
-      bbval = (bbval - offset) / gain;
+      /* ODIM's rule for representing quality is that 0=lowest, 1=highest quality. Therefore invert. */
+      bbval = ((1.0-bbval) - offset) / gain;
       RaveField_setValue(field, bi, ri, bbval);
     }
   }
@@ -646,7 +647,8 @@ int BeamBlockage_restore(PolarScan_t* scan, RaveField_t* blockage, const char* q
       rvt = PolarScanParam_getConvertedValue(parameter, bi, ri, &iv);
       if ((rvt == RaveValueType_DATA) || (rvt == RaveValueType_UNDETECT)) {
         RaveField_getValue(blockage, bi, ri, &bbraw);
-        bbpercent = bbgain * bbraw + bboffset;
+        /* ODIM's rule for representing quality is that 0=lowest, 1=highest quality. Therefore revert. */
+        bbpercent = 1.0 - (bbgain * bbraw + bboffset);
         if (bbpercent < 0.0 || bbpercent > 1.0) {
           RAVE_ERROR0("beamb values are out of bounds, check scaling");
           goto done;

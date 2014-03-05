@@ -87,7 +87,7 @@ if __name__ == "__main__":
                       help="Specifies the limit of the Gaussian approximation of the beamwidth (in dB) to apply when analyzing the degree of beam blockage. NOTE that this does not have to be the radar's half-power beamwidth. Defaults to -6.0 dB.")
 
     parser.add_option("-r", "--restore", dest="restore", default=0.7, type="float",
-                      help="Specifies the upper threshold on how much beam blockage is accepted to be corrected. Sectors blocked more than this value are blocked out by assigning them the 'nodata' value. Defaults to 0.7 (70 %).")
+                      help="Specifies the upper threshold on how much beam blockage is accepted to be corrected. Sectors blocked more than this value are blocked out by assigning them the 'nodata' value. Defaults to 0.7 (70 %). Values above 1 will correct all data and mask none.")
     
     parser.add_option("-q", "--quantity", dest="quantity", default="DBZH",
                       help="Specifies the quantity to work with, default 'DBZH'.")

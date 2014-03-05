@@ -55,6 +55,10 @@ test: def.mk
 	@chmod +x ./tools/test_beamb.sh
 	@./tools/test_beamb.sh
 
+.PHONY:clean_cache
+clean_cache:
+	$(MAKE) -C data clean_cache
+
 .PHONY:clean
 clean:
 	$(MAKE) -C lib clean
