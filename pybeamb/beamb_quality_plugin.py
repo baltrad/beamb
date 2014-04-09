@@ -82,6 +82,7 @@ class beamb_quality_plugin(rave_quality_plugin):
         if _polarscan.isPolarScan(obj):
           bb = self._create_bb()
           result = bb.getBlockage(obj, self._dblimit)
+          restored = _beamblockage.restore(obj, result, "DBZH", self._bblimit)
           obj.addQualityField(result)
         elif _polarvolume.isPolarVolume(obj):
           for i in range(obj.getNumberOfScans()):
