@@ -74,25 +74,32 @@ class beamb_quality_plugin(rave_quality_plugin):
   
   ##
   # @param obj: A rave object that should be processed.
+  # @param reprocess_quality_flag: If the quality fields should be reprocessed or not.
   # @return: The modified object if this quality plugin has performed changes 
   # to the object.
-  def process(self, obj):
+  def process(self, obj, reprocess_quality_flag=True):
     if obj != None:
       try:
         if _polarscan.isPolarScan(obj):
+          if reprocess_quality_flag == False and obj.findQualityFieldByHowTask("se.smhi.detector.beamblockage") != None:
+            return obj
           bb = self._create_bb()
           result = bb.getBlockage(obj, self._dblimit)
           restored = _beamblockage.restore(obj, result, "DBZH", self._bblimit)
-          obj.addQualityField(result)
+          obj.addOrReplaceQualityField(result)
+          
         elif _polarvolume.isPolarVolume(obj):
           for i in range(obj.getNumberOfScans()):
-            bb = self._create_bb()
             scan = obj.getScan(i)
+            if reprocess_quality_flag == False and scan.findQualityFieldByHowTask("se.smhi.detector.beamblockage") != None:
+              continue
+            bb = self._create_bb()
             result = bb.getBlockage(scan, self._dblimit)
             restored = _beamblockage.restore(scan, result, "DBZH", self._bblimit)
-            scan.addQualityField(result)
+            scan.addOrReplaceQualityField(result)
       except Exception,e:
-        pass
+        import traceback
+        traceback.print_exc()
 
     return obj
 

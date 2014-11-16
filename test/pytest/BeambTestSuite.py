@@ -24,7 +24,6 @@ Test suite for beamb
 @date 2011-11-15
 '''
 import unittest
-
 from PyBeamBlockageTest import *
 from PyBeamBlockageMapTest import *
 from PyBBTopographyTest import *

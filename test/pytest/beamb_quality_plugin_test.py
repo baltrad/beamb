@@ -119,6 +119,36 @@ class beamb_quality_plugin_test(unittest.TestCase):
     
     self.assertTrue(result == scan) # Return original scan with added field
     self.assertTrue(result.findQualityFieldByHowTask("se.smhi.detector.beamblockage") != None)
+
+  def test_process_scan_reprocess_true(self):
+    classUnderTest = beamb_quality_plugin.beamb_quality_plugin()
+    classUnderTest._cachedir="/tmp"
+    classUnderTest._topodir="../../data/gtopo30"
+    
+    scan = _raveio.open(self.SCAN_FIXTURE).object
+    
+    result = classUnderTest.process(scan)
+    field1 = result.getQualityFieldByHowTask("se.smhi.detector.beamblockage")
+
+    result = classUnderTest.process(scan, reprocess_quality_flag=True)
+    field2 = result.getQualityFieldByHowTask("se.smhi.detector.beamblockage")
+    
+    self.assertTrue(field1 != field2)
+
+  def test_process_scan_reprocess_false(self):
+    classUnderTest = beamb_quality_plugin.beamb_quality_plugin()
+    classUnderTest._cachedir="/tmp"
+    classUnderTest._topodir="../../data/gtopo30"
+    
+    scan = _raveio.open(self.SCAN_FIXTURE).object
+    
+    result = classUnderTest.process(scan)
+    field1 = result.getQualityFieldByHowTask("se.smhi.detector.beamblockage")
+
+    result = classUnderTest.process(scan, reprocess_quality_flag=False)
+    field2 = result.getQualityFieldByHowTask("se.smhi.detector.beamblockage")
+    
+    self.assertTrue(field1 == field2)
     
   def test_process_volume(self):
     classUnderTest = beamb_quality_plugin.beamb_quality_plugin()
@@ -137,6 +167,53 @@ class beamb_quality_plugin_test(unittest.TestCase):
       scan = volume.getScan(i)
       self.assertTrue(scan.findQualityFieldByHowTask("se.smhi.detector.beamblockage") != None)
 
+  def test_process_volume_reprocess_true(self):
+    classUnderTest = beamb_quality_plugin.beamb_quality_plugin()
+    classUnderTest._cachedir="/tmp"
+    classUnderTest._topodir="../../data/gtopo30"
+    
+    volume = _raveio.open(self.VOLUME_FIXTURE).object
+    
+    result = classUnderTest.process(volume)
+    
+    fields=[]
+    for i in range(volume.getNumberOfScans()):
+      scan = volume.getScan(i)
+      fields.append(scan.getQualityFieldByHowTask("se.smhi.detector.beamblockage"))
+    
+    result = classUnderTest.process(volume, reprocess_quality_flag=True)
+    fields2=[]
+    for i in range(volume.getNumberOfScans()):
+      scan = volume.getScan(i)
+      fields2.append(scan.getQualityFieldByHowTask("se.smhi.detector.beamblockage"))
+    
+    self.assertEquals(len(fields), len(fields2))
+    for i in range(len(fields)):
+      self.assertTrue(fields[i] != fields2[i])
+
+  def test_process_volume_reprocess_false(self):
+    classUnderTest = beamb_quality_plugin.beamb_quality_plugin()
+    classUnderTest._cachedir="/tmp"
+    classUnderTest._topodir="../../data/gtopo30"
+    
+    volume = _raveio.open(self.VOLUME_FIXTURE).object
+    
+    result = classUnderTest.process(volume)
+    
+    fields=[]
+    for i in range(volume.getNumberOfScans()):
+      scan = volume.getScan(i)
+      fields.append(scan.getQualityFieldByHowTask("se.smhi.detector.beamblockage"))
+    
+    result = classUnderTest.process(volume, reprocess_quality_flag=False)
+    fields2=[]
+    for i in range(volume.getNumberOfScans()):
+      scan = volume.getScan(i)
+      fields2.append(scan.getQualityFieldByHowTask("se.smhi.detector.beamblockage"))
+    
+    self.assertEquals(len(fields), len(fields2))
+    for i in range(len(fields)):
+      self.assertTrue(fields[i] == fields2[i])
     
 if __name__ == "__main__":
   #import sys;sys.argv = ['', 'Test.testName']
