@@ -75,9 +75,10 @@ class beamb_quality_plugin(rave_quality_plugin):
   ##
   # @param obj: A rave object that should be processed.
   # @param reprocess_quality_flag: If the quality fields should be reprocessed or not.
+  # @param arguments: Not used
   # @return: The modified object if this quality plugin has performed changes 
   # to the object.
-  def process(self, obj, reprocess_quality_flag=True):
+  def process(self, obj, reprocess_quality_flag=True, arguments=None):
     if obj != None:
       try:
         if _polarscan.isPolarScan(obj):
