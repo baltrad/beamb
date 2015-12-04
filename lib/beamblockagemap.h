@@ -24,6 +24,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
  */
 #ifndef BEAMBLOCKAGEMAP_H
 #define BEAMBLOCKAGEMAP_H
+#include <string.h>
 #include "rave_object.h"
 #include "rave_field.h"
 #include "bbtopography.h"
