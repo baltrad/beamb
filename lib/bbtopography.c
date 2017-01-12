@@ -170,7 +170,7 @@ double BBTopography_getUlymap(BBTopography_t* self)
 int BBTopography_createData(BBTopography_t* self, long ncols, long nrows, RaveDataType type)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
-  return RaveData2D_createData(self->data, ncols, nrows, type);
+  return RaveData2D_createData(self->data, ncols, nrows, type, 0);
 }
 
 int BBTopography_setData(BBTopography_t* self, long ncols, long nrows, void* data, RaveDataType type)
