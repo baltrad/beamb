@@ -25,9 +25,16 @@ along with BEAMB.  If not, see <http://www.gnu.org/licenses/>.
 # @date 2012-01-03
 
 from rave_quality_plugin import rave_quality_plugin
+from rave_quality_plugin import QUALITY_CONTROL_MODE_ANALYZE_AND_APPLY
+from rave_quality_plugin import QUALITY_CONTROL_MODE_ANALYZE
+
+import rave_pgf_logger
+
 import _polarscan
 import _polarvolume
 import _beamblockage
+
+logger = rave_pgf_logger.create_logger()
 
 ##
 # The limit of the Gaussian approximation of main lobe
@@ -78,7 +85,7 @@ class beamb_quality_plugin(rave_quality_plugin):
   # @param arguments: Not used
   # @return: The modified object if this quality plugin has performed changes 
   # to the object.
-  def process(self, obj, reprocess_quality_flag=True, arguments=None):
+  def process(self, obj, reprocess_quality_flag=True, quality_control_mode=QUALITY_CONTROL_MODE_ANALYZE_AND_APPLY, arguments=None):
     if obj != None:
       try:
         if _polarscan.isPolarScan(obj):
@@ -86,7 +93,8 @@ class beamb_quality_plugin(rave_quality_plugin):
             return obj
           bb = self._create_bb()
           result = bb.getBlockage(obj, self._dblimit)
-          restored = _beamblockage.restore(obj, result, "DBZH", self._bblimit)
+          if quality_control_mode != QUALITY_CONTROL_MODE_ANALYZE:
+            _beamblockage.restore(obj, result, "DBZH", self._bblimit)
           obj.addOrReplaceQualityField(result)
           
         elif _polarvolume.isPolarVolume(obj):
@@ -96,11 +104,11 @@ class beamb_quality_plugin(rave_quality_plugin):
               continue
             bb = self._create_bb()
             result = bb.getBlockage(scan, self._dblimit)
-            restored = _beamblockage.restore(scan, result, "DBZH", self._bblimit)
+            if quality_control_mode != QUALITY_CONTROL_MODE_ANALYZE:
+              _beamblockage.restore(scan, result, "DBZH", self._bblimit)
             scan.addOrReplaceQualityField(result)
-      except Exception,e:
-        import traceback
-        traceback.print_exc()
+      except:
+        logger.exception("Failed to generate beam blockage field")
 
     return obj
 

@@ -32,6 +32,7 @@ import rave_quality_plugin
 import os, string
 import _rave
 import numpy
+from rave_quality_plugin import QUALITY_CONTROL_MODE_ANALYZE
 
 class beamb_quality_plugin_test(unittest.TestCase):
   SCAN_FIXTURE = "fixtures/sevil_0.5_20111223T0000Z.h5"
@@ -114,10 +115,15 @@ class beamb_quality_plugin_test(unittest.TestCase):
     scan = _raveio.open(self.SCAN_FIXTURE).object
     
     self.assertTrue(scan.findQualityFieldByHowTask("se.smhi.detector.beamblockage") == None)
+    
+    oldparam = scan.getParameter("DBZH").clone()
 
     result = classUnderTest.process(scan)
     
     self.assertTrue(result == scan) # Return original scan with added field
+    
+    self.assertFalse(numpy.array_equal(oldparam.getData(), result.getParameter("DBZH").getData())) # Default behaviour is analyze&apply
+    
     self.assertTrue(result.findQualityFieldByHowTask("se.smhi.detector.beamblockage") != None)
 
   def test_process_scan_reprocess_true(self):
@@ -149,6 +155,22 @@ class beamb_quality_plugin_test(unittest.TestCase):
     field2 = result.getQualityFieldByHowTask("se.smhi.detector.beamblockage")
     
     self.assertTrue(field1 == field2)
+
+  def test_process_scan_only_analyse(self):
+    classUnderTest = beamb_quality_plugin.beamb_quality_plugin()
+    classUnderTest._cachedir="/tmp"
+    classUnderTest._topodir="../../data/gtopo30"
+    
+    scan = _raveio.open(self.SCAN_FIXTURE).object
+    
+    self.assertTrue(scan.findQualityFieldByHowTask("se.smhi.detector.beamblockage") == None)
+
+    oldparam = scan.getParameter("DBZH").clone()
+
+    result = classUnderTest.process(scan, True, QUALITY_CONTROL_MODE_ANALYZE)
+    
+    self.assertTrue(numpy.array_equal(oldparam.getData(), result.getParameter("DBZH").getData())) # Return new scan with added field
+    self.assertTrue(result.findQualityFieldByHowTask("se.smhi.detector.beamblockage") != None)
     
   def test_process_volume(self):
     classUnderTest = beamb_quality_plugin.beamb_quality_plugin()
