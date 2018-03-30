@@ -58,19 +58,19 @@ class PyBeamBlockageTest(unittest.TestCase):
         
   def testNew(self):
     a = _beamblockage.new()
-    self.assertNotEqual(-1, string.find(`type(a)`, "BeamBlockageCore"))
+    self.assertNotEqual(-1, str(type(a)).find("BeamBlockageCore"))
 
   def testTopo30(self):
     a = _beamblockage.new()
     self.assertTrue(None != a.topo30dir)
     a.topo30dir="/tmp"
-    self.assertEquals("/tmp", a.topo30dir)
+    self.assertEqual("/tmp", a.topo30dir)
 
   def testCachedir(self):
     a = _beamblockage.new()
     self.assertTrue(a.cachedir != None)
     a.cachedir="/tmp"
-    self.assertEquals("/tmp", a.cachedir)
+    self.assertEqual("/tmp", a.cachedir)
   
   def testReadTopo30(self):
     a = _beamblockage.new()
@@ -84,11 +84,11 @@ class PyBeamBlockageTest(unittest.TestCase):
     result = a.getBlockage(scan, -20.0);
     self.assertFalse(os.path.isfile(self.CACHEFILE_1))
 
-    self.assertEquals(_rave.RaveDataType_UCHAR, result.datatype)
-    self.assertAlmostEquals(0.0, result.getAttribute("what/offset"), 4)
-    self.assertAlmostEquals(1/255.0, result.getAttribute("what/gain"), 4)
-    self.assertEquals(scan.nbins, result.xsize)
-    self.assertEquals(scan.nrays, result.ysize)
+    self.assertEqual(_rave.RaveDataType_UCHAR, result.datatype)
+    self.assertAlmostEqual(0.0, result.getAttribute("what/offset"), 4)
+    self.assertAlmostEqual(1/255.0, result.getAttribute("what/gain"), 4)
+    self.assertEqual(scan.nbins, result.xsize)
+    self.assertEqual(scan.nrays, result.ysize)
 
   def test_getBlockage_caching(self):
     a = _beamblockage.new()
@@ -102,11 +102,11 @@ class PyBeamBlockageTest(unittest.TestCase):
     
     self.assertTrue(os.path.isfile(self.CACHEFILE_1))
 
-    self.assertEquals(_rave.RaveDataType_UCHAR, result.datatype)
-    self.assertAlmostEquals(0.0, result.getAttribute("what/offset"), 4)
-    self.assertAlmostEquals(1/255.0, result.getAttribute("what/gain"), 4)
-    self.assertEquals(scan.nbins, result.xsize)
-    self.assertEquals(scan.nrays, result.ysize)
+    self.assertEqual(_rave.RaveDataType_UCHAR, result.datatype)
+    self.assertAlmostEqual(0.0, result.getAttribute("what/offset"), 4)
+    self.assertAlmostEqual(1/255.0, result.getAttribute("what/gain"), 4)
+    self.assertEqual(scan.nbins, result.xsize)
+    self.assertEqual(scan.nrays, result.ysize)
     
   def test_getBlockage2(self):
     a = _beamblockage.new()
@@ -114,11 +114,11 @@ class PyBeamBlockageTest(unittest.TestCase):
     a.cachedir="/tmp"
     scan = _raveio.open(self.FIXTURE_2).object
     result = a.getBlockage(scan, -20.0);
-    self.assertEquals(_rave.RaveDataType_UCHAR, result.datatype)
-    self.assertAlmostEquals(0.0, result.getAttribute("what/offset"), 4)
-    self.assertAlmostEquals(1/255.0, result.getAttribute("what/gain"), 4)
-    self.assertEquals(scan.nbins, result.xsize)
-    self.assertEquals(scan.nrays, result.ysize)
+    self.assertEqual(_rave.RaveDataType_UCHAR, result.datatype)
+    self.assertAlmostEqual(0.0, result.getAttribute("what/offset"), 4)
+    self.assertAlmostEqual(1/255.0, result.getAttribute("what/gain"), 4)
+    self.assertEqual(scan.nbins, result.xsize)
+    self.assertEqual(scan.nrays, result.ysize)
 
   def test_getBlockage2_keep_cache(self):
     a = _beamblockage.new()
@@ -133,8 +133,8 @@ class PyBeamBlockageTest(unittest.TestCase):
     result = a.getBlockage(scan, -20.0);
     c2stat_n = os.stat(self.CACHEFILE_2)
 
-    self.assertEquals(c2stat.st_ctime, c2stat_n.st_ctime)
-    self.assertEquals(c2stat.st_mtime, c2stat_n.st_mtime)
+    self.assertEqual(c2stat.st_ctime, c2stat_n.st_ctime)
+    self.assertEqual(c2stat.st_mtime, c2stat_n.st_mtime)
     
   def test_getBlockage2_recreate_cache(self):
     a = _beamblockage.new()
@@ -150,8 +150,8 @@ class PyBeamBlockageTest(unittest.TestCase):
     result = a.getBlockage(scan, -20.0);
     c2stat_n = os.stat(self.CACHEFILE_2)
 
-    self.assertNotEquals(c2stat.st_ctime, c2stat_n.st_ctime)
-    self.assertNotEquals(c2stat.st_mtime, c2stat_n.st_mtime)    
+    self.assertNotEqual(c2stat.st_ctime, c2stat_n.st_ctime)
+    self.assertNotEqual(c2stat.st_mtime, c2stat_n.st_mtime)    
 
   def test_getBlockage2_different_dblim(self):
     a = _beamblockage.new()

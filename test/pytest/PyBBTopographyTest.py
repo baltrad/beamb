@@ -40,7 +40,7 @@ class PyBBTopographyTest(unittest.TestCase):
   
   def test_new(self):
     a = _bbtopography.new()
-    self.assertNotEqual(-1, string.find(`type(a)`, "BBTopographyCore"))
+    self.assertNotEqual(-1, str(type(a)).find("BBTopographyCore"))
 
   def test_nodata(self):
     a = _bbtopography.new()
@@ -114,12 +114,12 @@ class PyBBTopographyTest(unittest.TestCase):
     obj2.setValue(5,4,25.0)
 
     result = obj.concatx(obj2)
-    self.assertEquals(16, result.ncols)
-    self.assertEquals(10, result.nrows)
-    self.assertAlmostEquals(10.0, result.getValue(0,1)[1], 4)
-    self.assertAlmostEquals(20.0, result.getValue(5,4)[1], 4)
-    self.assertAlmostEquals(15.0, result.getValue(10,1)[1], 4)
-    self.assertAlmostEquals(25.0, result.getValue(15,4)[1], 4)    
+    self.assertEqual(16, result.ncols)
+    self.assertEqual(10, result.nrows)
+    self.assertAlmostEqual(10.0, result.getValue(0,1)[1], 4)
+    self.assertAlmostEqual(20.0, result.getValue(5,4)[1], 4)
+    self.assertAlmostEqual(15.0, result.getValue(10,1)[1], 4)
+    self.assertAlmostEqual(25.0, result.getValue(15,4)[1], 4)    
 
   def test_concaty(self):
     obj = _bbtopography.new()
@@ -133,12 +133,12 @@ class PyBBTopographyTest(unittest.TestCase):
     obj2.setValue(5,4,25.0)
 
     result = obj.concaty(obj2)
-    self.assertEquals(10, result.ncols)
-    self.assertEquals(16, result.nrows)
-    self.assertAlmostEquals(10.0, result.getValue(0,1)[1], 4)
-    self.assertAlmostEquals(20.0, result.getValue(5,4)[1], 4)
-    self.assertAlmostEquals(15.0, result.getValue(0,11)[1], 4)
-    self.assertAlmostEquals(25.0, result.getValue(5,14)[1], 4)    
+    self.assertEqual(10, result.ncols)
+    self.assertEqual(16, result.nrows)
+    self.assertAlmostEqual(10.0, result.getValue(0,1)[1], 4)
+    self.assertAlmostEqual(20.0, result.getValue(5,4)[1], 4)
+    self.assertAlmostEqual(15.0, result.getValue(0,11)[1], 4)
+    self.assertAlmostEqual(25.0, result.getValue(5,14)[1], 4)    
 
 
 if __name__ == "__main__":

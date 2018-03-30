@@ -22,6 +22,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
  * @author Anders Henja (Swedish Meteorological and Hydrological Institute, SMHI)
  * @date 2011-11-14
  */
+#include "pybeamb_compat.h"
 #include "Python.h"
 #include <math.h>
 #include <stdio.h>
@@ -218,49 +219,40 @@ static struct PyMethodDef _pybeamblockage_methods[] =
 /**
  * Returns the specified attribute in the beam blockage
  */
-static PyObject* _pybeamblockage_getattr(PyBeamBlockage* self, char* name)
+static PyObject* _pybeamblockage_getattro(PyBeamBlockage* self, PyObject* name)
 {
-  PyObject* res = NULL;
-
-  if (strcmp("topo30dir", name) == 0) {
+  if (PY_COMPARE_STRING_WITH_ATTRO_NAME("topo30dir", name) == 0) {
     const char* str = BeamBlockage_getTopo30Directory(self->beamb);
     if (str != NULL) {
       return PyString_FromString(str);
     } else {
       Py_RETURN_NONE;
     }
-  } else if (strcmp("cachedir", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("cachedir", name) == 0) {
     const char* str = BeamBlockage_getCacheDirectory(self->beamb);
     if (str != NULL) {
       return PyString_FromString(str);
     } else {
       Py_RETURN_NONE;
     }
-  } else if (strcmp("rewritecache", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("rewritecache", name) == 0) {
     int val = BeamBlockage_getRewriteCache(self->beamb);
     return PyBool_FromLong(val);
   }
-
-  res = Py_FindMethod(_pybeamblockage_methods, (PyObject*) self, name);
-  if (res)
-    return res;
-
-  PyErr_Clear();
-  PyErr_SetString(PyExc_AttributeError, name);
-  return NULL;
+  return PyObject_GenericGetAttr((PyObject*)self, name);
 }
 
 /**
  * Returns the specified attribute in the polar volume
  */
-static int _pybeamblockage_setattr(PyBeamBlockage* self, char* name, PyObject* val)
+static int _pybeamblockage_setattro(PyBeamBlockage* self, PyObject* name, PyObject* val)
 {
   int result = -1;
   if (name == NULL) {
     goto done;
   }
 
-  if (strcmp("topo30dir", name) == 0) {
+  if (PY_COMPARE_STRING_WITH_ATTRO_NAME("topo30dir", name) == 0) {
     if (PyString_Check(val)) {
       if (!BeamBlockage_setTopo30Directory(self->beamb, PyString_AsString(val))) {
         raiseException_gotoTag(done, PyExc_ValueError, "topo30dir must be a string or None");
@@ -270,7 +262,7 @@ static int _pybeamblockage_setattr(PyBeamBlockage* self, char* name, PyObject* v
     } else {
       raiseException_gotoTag(done, PyExc_ValueError, "topo30dir must be a string or None");
     }
-  } else if (strcmp("cachedir", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("cachedir", name) == 0) {
     if (PyString_Check(val)) {
       if (!BeamBlockage_setCacheDirectory(self->beamb, PyString_AsString(val))) {
         raiseException_gotoTag(done, PyExc_ValueError, "cachedir must be a string or None");
@@ -280,14 +272,14 @@ static int _pybeamblockage_setattr(PyBeamBlockage* self, char* name, PyObject* v
     } else {
       raiseException_gotoTag(done, PyExc_ValueError, "cachedir must be a string or None");
     }
-  } else if (strcmp("rewritecache", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("rewritecache", name) == 0) {
     if (PyBool_Check(val)) {
       BeamBlockage_setRewriteCache(self->beamb, val == Py_True?1:0);
     } else {
       raiseException_gotoTag(done, PyExc_ValueError, "rewritecache must be a boolean");
     }
   } else {
-    raiseException_gotoTag(done, PyExc_AttributeError, name);
+    raiseException_gotoTag(done, PyExc_AttributeError, PY_RAVE_ATTRO_NAME_TO_STRING(name));
   }
 
   result = 0;
@@ -303,21 +295,47 @@ done:
 /*@{ Type definitions */
 PyTypeObject PyBeamBlockage_Type =
 {
-  PyObject_HEAD_INIT(NULL)0, /*ob_size*/
+  PyVarObject_HEAD_INIT(NULL, 0) /*ob_size*/
   "BeamBlockageCore", /*tp_name*/
   sizeof(PyBeamBlockage), /*tp_size*/
   0, /*tp_itemsize*/
   /* methods */
   (destructor)_pybeamblockage_dealloc, /*tp_dealloc*/
   0, /*tp_print*/
-  (getattrfunc)_pybeamblockage_getattr, /*tp_getattr*/
-  (setattrfunc)_pybeamblockage_setattr, /*tp_setattr*/
-  0, /*tp_compare*/
-  0, /*tp_repr*/
-  0, /*tp_as_number */
+  (getattrfunc)0,               /*tp_getattr*/
+  (setattrfunc)0,               /*tp_setattr*/
+  0,                            /*tp_compare*/
+  0,                            /*tp_repr*/
+  0,                            /*tp_as_number */
   0,
-  0, /*tp_as_mapping */
-  0 /*tp_hash*/
+  0,                            /*tp_as_mapping */
+  0,                            /*tp_hash*/
+  (ternaryfunc)0,               /*tp_call*/
+  (reprfunc)0,                  /*tp_str*/
+  (getattrofunc)_pybeamblockage_getattro, /*tp_getattro*/
+  (setattrofunc)_pybeamblockage_setattro, /*tp_setattro*/
+  0,                            /*tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT, /*tp_flags*/
+  0,                            /*tp_doc*/
+  (traverseproc)0,              /*tp_traverse*/
+  (inquiry)0,                   /*tp_clear*/
+  0,                            /*tp_richcompare*/
+  0,                            /*tp_weaklistoffset*/
+  0,                            /*tp_iter*/
+  0,                            /*tp_iternext*/
+  _pybeamblockage_methods,              /*tp_methods*/
+  0,                            /*tp_members*/
+  0,                            /*tp_getset*/
+  0,                            /*tp_base*/
+  0,                            /*tp_dict*/
+  0,                            /*tp_descr_get*/
+  0,                            /*tp_descr_set*/
+  0,                            /*tp_dictoffset*/
+  0,                            /*tp_init*/
+  0,                            /*tp_alloc*/
+  0,                            /*tp_new*/
+  0,                            /*tp_free*/
+  0,                            /*tp_is_gc*/
 };
 /*@} End of Type definitions */
 
@@ -332,36 +350,39 @@ static PyMethodDef functions[] = {
   {NULL,NULL} /*Sentinel*/
 };
 
-PyMODINIT_FUNC
-init_beamblockage(void)
+MOD_INIT(_beamblockage)
 {
   PyObject *module=NULL,*dictionary=NULL;
   static void *PyBeamBlockage_API[PyBeamBlockage_API_pointers];
   PyObject *c_api_object = NULL;
-  PyBeamBlockage_Type.ob_type = &PyType_Type;
 
-  module = Py_InitModule("_beamblockage", functions);
+  MOD_INIT_SETUP_TYPE(PyBeamBlockage_Type, &PyType_Type);
+
+  MOD_INIT_VERIFY_TYPE_READY(&PyBeamBlockage_Type);
+
+  MOD_INIT_DEF(module, "_beamblockage", NULL/*doc*/, functions);
   if (module == NULL) {
-    return;
+    return MOD_INIT_ERROR;
   }
+
   PyBeamBlockage_API[PyBeamBlockage_Type_NUM] = (void*)&PyBeamBlockage_Type;
   PyBeamBlockage_API[PyBeamBlockage_GetNative_NUM] = (void *)PyBeamBlockage_GetNative;
   PyBeamBlockage_API[PyBeamBlockage_New_NUM] = (void*)PyBeamBlockage_New;
 
-  c_api_object = PyCObject_FromVoidPtr((void *)PyBeamBlockage_API, NULL);
-
-  if (c_api_object != NULL) {
-    PyModule_AddObject(module, "_C_API", c_api_object);
-  }
-
+  c_api_object = PyCapsule_New(PyBeamBlockage_API, PyBeamBlockage_CAPSULE_NAME, NULL);
   dictionary = PyModule_GetDict(module);
-  ErrorObject = PyString_FromString("_beamblockage.error");
+  PyDict_SetItemString(dictionary, "_C_API", c_api_object);
 
+  ErrorObject = PyErr_NewException("_beamblockage.error", NULL, NULL);
   if (ErrorObject == NULL || PyDict_SetItemString(dictionary, "error", ErrorObject) != 0) {
     Py_FatalError("Can't define _beamblockage.error");
+    return MOD_INIT_ERROR;
   }
+
   import_pyravefield();
   import_pypolarscan();
   PYRAVE_DEBUG_INITIALIZE;
+
+  return MOD_INIT_SUCCESS(module);
 }
 /*@} End of Module setup */

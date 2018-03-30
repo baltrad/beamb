@@ -47,6 +47,8 @@ typedef struct {
 
 #define PyBBTopography_API_pointers 3                          /**< number of type and function pointers */
 
+#define PyBBTopography_CAPSULE_NAME "_bbtopography._C_API"
+
 #ifdef PYBBTOPOGRAPHY_MODULE
 /** Forward declaration of type */
 extern PyTypeObject PyBBTopography_Type;
@@ -85,34 +87,15 @@ static void **PyBBTopography_API;
  * Checks if the object is a python topography instance
  */
 #define PyBBTopography_Check(op) \
-   ((op)->ob_type == (PyTypeObject *)PyBBTopography_API[PyBBTopography_Type_NUM])
+	(Py_TYPE(op) == &PyBBTopography_Type)
+
+#define PyBBTopography_Type (*(PyTypeObject*)PyBBTopography_API[PyBBTopography_Type_NUM])
 
 /**
  * Imports the PyBBTopography module (like import _bbtopography in python).
  */
-static int
-import_bbtopography(void)
-{
-  PyObject *module;
-  PyObject *c_api_object;
-
-  module = PyImport_ImportModule("_bbtopography");
-  if (module == NULL) {
-    return -1;
-  }
-
-  c_api_object = PyObject_GetAttrString(module, "_C_API");
-  if (c_api_object == NULL) {
-    Py_DECREF(module);
-    return -1;
-  }
-  if (PyCObject_Check(c_api_object)) {
-    PyBBTopography_API = (void **)PyCObject_AsVoidPtr(c_api_object);
-  }
-  Py_DECREF(c_api_object);
-  Py_DECREF(module);
-  return 0;
-}
+#define import_bbtopography() \
+	PyBBTopography_API = (void **)PyCapsule_Import(PyBBTopography_CAPSULE_NAME, 1);
 
 #endif
 

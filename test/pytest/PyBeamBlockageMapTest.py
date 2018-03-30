@@ -43,29 +43,29 @@ class PyBeamBlockageMapTest(unittest.TestCase):
   
   def testNew(self):
     a = _beamblockagemap.new()
-    self.assertNotEqual(-1, string.find(`type(a)`, "BeamBlockageMapCore"))
+    self.assertNotEqual(-1, str(type(a)).find("BeamBlockageMapCore"))
 
   def testTopo30(self):
     a = _beamblockagemap.new()
     self.assertTrue(None != a.topo30dir)
     a.topo30dir="/tmp"
-    self.assertEquals("/tmp", a.topo30dir)
+    self.assertEqual("/tmp", a.topo30dir)
   
   def testReadTopo30(self):
     a = _beamblockagemap.new()
     a.topo30dir="../../data/gtopo30"
     result = a.readTopography(60*math.pi/180, 0*math.pi/180.0, 100000)
     self.assertTrue(result != None)
-    self.assertEquals(6000, result.nrows)
-    self.assertEquals(4800, result.ncols)
+    self.assertEqual(6000, result.nrows)
+    self.assertEqual(4800, result.ncols)
     
   def testReadTopo30_combined(self):
     a = _beamblockagemap.new()
     a.topo30dir="../../data/gtopo30"
     result = a.readTopography(60*math.pi/180, 20*math.pi/180.0, 200000)
     self.assertTrue(result != None)
-    self.assertEquals(6000, result.nrows)
-    self.assertEquals(9600, result.ncols)
+    self.assertEqual(6000, result.nrows)
+    self.assertEqual(9600, result.ncols)
   
   def testGetTopographyForScan(self):
     a = _beamblockagemap.new()

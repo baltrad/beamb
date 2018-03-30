@@ -22,6 +22,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
  * @author Anders Henja (Swedish Meteorological and Hydrological Institute, SMHI)
  * @date 2011-11-16
  */
+#include "pybeamb_compat.h"
 #include "Python.h"
 #include <math.h>
 #include <stdio.h>
@@ -330,45 +331,37 @@ static struct PyMethodDef _pybbtopography_methods[] =
 /**
  * Returns the specified attribute in the beam blockage
  */
-static PyObject* _pybbtopography_getattr(PyBBTopography* self, char* name)
+static PyObject* _pybbtopography_getattro(PyBBTopography* self, PyObject* name)
 {
-  PyObject* res = NULL;
-  if (strcmp("nodata", name) == 0) {
+  if (PY_COMPARE_STRING_WITH_ATTRO_NAME("nodata", name) == 0) {
     return PyFloat_FromDouble(BBTopography_getNodata(self->topo));
-  } else if (strcmp("ulxmap", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("ulxmap", name) == 0) {
     return PyFloat_FromDouble(BBTopography_getUlxmap(self->topo));
-  } else if (strcmp("ulymap", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("ulymap", name) == 0) {
     return PyFloat_FromDouble(BBTopography_getUlymap(self->topo));
-  } else if (strcmp("xdim", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("xdim", name) == 0) {
     return PyFloat_FromDouble(BBTopography_getXDim(self->topo));
-  } else if (strcmp("ydim", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("ydim", name) == 0) {
     return PyFloat_FromDouble(BBTopography_getYDim(self->topo));
-  } else if (strcmp("ncols", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("ncols", name) == 0) {
     return PyLong_FromLong(BBTopography_getNcols(self->topo));
-  } else if (strcmp("nrows", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("nrows", name) == 0) {
     return PyLong_FromLong(BBTopography_getNrows(self->topo));
   }
-
-  res = Py_FindMethod(_pybbtopography_methods, (PyObject*) self, name);
-  if (res)
-    return res;
-
-  PyErr_Clear();
-  PyErr_SetString(PyExc_AttributeError, name);
-  return NULL;
+  return PyObject_GenericGetAttr((PyObject*)self, name);
 }
 
 /**
  * Returns the specified attribute in the polar volume
  */
-static int _pybbtopography_setattr(PyBBTopography* self, char* name, PyObject* val)
+static int _pybbtopography_setattro(PyBBTopography* self, PyObject* name, PyObject* val)
 {
   int result = -1;
   if (name == NULL) {
     goto done;
   }
 
-  if (strcmp("nodata", name) == 0) {
+  if (PY_COMPARE_STRING_WITH_ATTRO_NAME("nodata", name) == 0) {
     if (PyFloat_Check(val)) {
       BBTopography_setNodata(self->topo, PyFloat_AsDouble(val));
     } else if (PyLong_Check(val) || PyInt_Check(val)) {
@@ -376,7 +369,7 @@ static int _pybbtopography_setattr(PyBBTopography* self, char* name, PyObject* v
     } else {
       raiseException_gotoTag(done, PyExc_ValueError, "nodata must be a floating number");
     }
-  } else if (strcmp("ulxmap", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("ulxmap", name) == 0) {
     if (PyFloat_Check(val)) {
       BBTopography_setUlxmap(self->topo, PyFloat_AsDouble(val));
     } else if (PyLong_Check(val) || PyInt_Check(val)) {
@@ -384,7 +377,7 @@ static int _pybbtopography_setattr(PyBBTopography* self, char* name, PyObject* v
     } else {
       raiseException_gotoTag(done, PyExc_ValueError, "ulxmap must be a floating number");
     }
-  } else if (strcmp("ulymap", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("ulymap", name) == 0) {
     if (PyFloat_Check(val)) {
       BBTopography_setUlymap(self->topo, PyFloat_AsDouble(val));
     } else if (PyLong_Check(val) || PyInt_Check(val)) {
@@ -392,7 +385,7 @@ static int _pybbtopography_setattr(PyBBTopography* self, char* name, PyObject* v
     } else {
       raiseException_gotoTag(done, PyExc_ValueError, "ulymap must be a floating number");
     }
-  } else if (strcmp("xdim", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("xdim", name) == 0) {
     if (PyFloat_Check(val)) {
       BBTopography_setXDim(self->topo, PyFloat_AsDouble(val));
     } else if (PyLong_Check(val) || PyInt_Check(val)) {
@@ -400,7 +393,7 @@ static int _pybbtopography_setattr(PyBBTopography* self, char* name, PyObject* v
     } else {
       raiseException_gotoTag(done, PyExc_ValueError, "xdim must be a floating number");
     }
-  } else if (strcmp("ydim", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("ydim", name) == 0) {
     if (PyFloat_Check(val)) {
       BBTopography_setYDim(self->topo, PyFloat_AsDouble(val));
     } else if (PyLong_Check(val) || PyInt_Check(val)) {
@@ -409,7 +402,7 @@ static int _pybbtopography_setattr(PyBBTopography* self, char* name, PyObject* v
       raiseException_gotoTag(done, PyExc_ValueError, "ydim must be a floating number");
     }
   } else {
-    raiseException_gotoTag(done, PyExc_AttributeError, name);
+    raiseException_gotoTag(done, PyExc_AttributeError, PY_RAVE_ATTRO_NAME_TO_STRING(name));
   }
 
   result = 0;
@@ -425,21 +418,47 @@ done:
 /*@{ Type definitions */
 PyTypeObject PyBBTopography_Type =
 {
-  PyObject_HEAD_INIT(NULL)0, /*ob_size*/
+  PyVarObject_HEAD_INIT(NULL, 0) /*ob_size*/
   "BBTopographyCore", /*tp_name*/
   sizeof(PyBBTopography), /*tp_size*/
   0, /*tp_itemsize*/
   /* methods */
   (destructor)_pybbtopography_dealloc, /*tp_dealloc*/
   0, /*tp_print*/
-  (getattrfunc)_pybbtopography_getattr, /*tp_getattr*/
-  (setattrfunc)_pybbtopography_setattr, /*tp_setattr*/
-  0, /*tp_compare*/
-  0, /*tp_repr*/
-  0, /*tp_as_number */
+  (getattrfunc)0,               /*tp_getattr*/
+  (setattrfunc)0,               /*tp_setattr*/
+  0,                            /*tp_compare*/
+  0,                            /*tp_repr*/
+  0,                            /*tp_as_number */
   0,
-  0, /*tp_as_mapping */
-  0 /*tp_hash*/
+  0,                            /*tp_as_mapping */
+  0,                            /*tp_hash*/
+  (ternaryfunc)0,               /*tp_call*/
+  (reprfunc)0,                  /*tp_str*/
+  (getattrofunc)_pybbtopography_getattro, /*tp_getattro*/
+  (setattrofunc)_pybbtopography_setattro, /*tp_setattro*/
+  0,                            /*tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT, /*tp_flags*/
+  0,                            /*tp_doc*/
+  (traverseproc)0,              /*tp_traverse*/
+  (inquiry)0,                   /*tp_clear*/
+  0,                            /*tp_richcompare*/
+  0,                            /*tp_weaklistoffset*/
+  0,                            /*tp_iter*/
+  0,                            /*tp_iternext*/
+  _pybbtopography_methods,              /*tp_methods*/
+  0,                            /*tp_members*/
+  0,                            /*tp_getset*/
+  0,                            /*tp_base*/
+  0,                            /*tp_dict*/
+  0,                            /*tp_descr_get*/
+  0,                            /*tp_descr_set*/
+  0,                            /*tp_dictoffset*/
+  0,                            /*tp_init*/
+  0,                            /*tp_alloc*/
+  0,                            /*tp_new*/
+  0,                            /*tp_free*/
+  0,                            /*tp_is_gc*/
 };
 /*@} End of Type definitions */
 
@@ -453,36 +472,38 @@ static PyMethodDef functions[] = {
   {NULL,NULL} /*Sentinel*/
 };
 
-PyMODINIT_FUNC
-init_bbtopography(void)
+MOD_INIT(_bbtopography)
 {
   PyObject *module=NULL,*dictionary=NULL;
   static void *PyBBTopography_API[PyBBTopography_API_pointers];
   PyObject *c_api_object = NULL;
-  PyBBTopography_Type.ob_type = &PyType_Type;
 
-  module = Py_InitModule("_bbtopography", functions);
+  MOD_INIT_SETUP_TYPE(PyBBTopography_Type, &PyType_Type);
+
+  MOD_INIT_VERIFY_TYPE_READY(&PyBBTopography_Type);
+
+  MOD_INIT_DEF(module, "_bbtopography", NULL/*doc*/, functions);
   if (module == NULL) {
-    return;
+    return MOD_INIT_ERROR;
   }
+
   PyBBTopography_API[PyBBTopography_Type_NUM] = (void*)&PyBBTopography_Type;
   PyBBTopography_API[PyBBTopography_GetNative_NUM] = (void *)PyBBTopography_GetNative;
   PyBBTopography_API[PyBBTopography_New_NUM] = (void*)PyBBTopography_New;
 
-  c_api_object = PyCObject_FromVoidPtr((void *)PyBBTopography_API, NULL);
-
-  if (c_api_object != NULL) {
-    PyModule_AddObject(module, "_C_API", c_api_object);
-  }
-
+  c_api_object = PyCapsule_New(PyBBTopography_API, PyBBTopography_CAPSULE_NAME, NULL);
   dictionary = PyModule_GetDict(module);
-  ErrorObject = PyString_FromString("_bbtopography.error");
+  PyDict_SetItemString(dictionary, "_C_API", c_api_object);
 
+  ErrorObject = PyErr_NewException("_bbtopography.error", NULL, NULL);
   if (ErrorObject == NULL || PyDict_SetItemString(dictionary, "error", ErrorObject) != 0) {
     Py_FatalError("Can't define _bbtopography.error");
+    return MOD_INIT_ERROR;
   }
+
   import_array();
 
   PYRAVE_DEBUG_INITIALIZE;
+  return MOD_INIT_SUCCESS(module);
 }
 /*@} End of Module setup */

@@ -46,6 +46,8 @@ typedef struct {
 
 #define PyBeamBlockageMap_API_pointers 3                          /**< number of type and function pointers */
 
+#define PyBeamBlockageMap_CAPSULE_NAME "_beamblockagemap._C_API"
+
 #ifdef PYBEAMBLOCKAGEMAP_MODULE
 /** Forward declaration of type */
 extern PyTypeObject PyBeamBlockageMap_Type;
@@ -84,34 +86,15 @@ static void **PyBeamBlockageMap_API;
  * Checks if the object is a python beam blockage instance
  */
 #define PyBeamBlockageMap_Check(op) \
-   ((op)->ob_type == (PyTypeObject *)PyBeamBlockageMap_API[PyBeamBlockageMap_Type_NUM])
+	(Py_TYPE(op) == &PyBeamBlockageMap_Type)
+
+#define PyBeamBlockageMap_Type (*(PyTypeObject*)PyBeamBlockageMap_API[PyBeamBlockageMap_Type_NUM])
 
 /**
  * Imports the PyBeamBlockageMap module (like import _beamblockage in python).
  */
-static int
-import_beamblockagemap(void)
-{
-  PyObject *module;
-  PyObject *c_api_object;
-
-  module = PyImport_ImportModule("_beamblockagemap");
-  if (module == NULL) {
-    return -1;
-  }
-
-  c_api_object = PyObject_GetAttrString(module, "_C_API");
-  if (c_api_object == NULL) {
-    Py_DECREF(module);
-    return -1;
-  }
-  if (PyCObject_Check(c_api_object)) {
-    PyBeamBlockageMap_API = (void **)PyCObject_AsVoidPtr(c_api_object);
-  }
-  Py_DECREF(c_api_object);
-  Py_DECREF(module);
-  return 0;
-}
+#define import_beamblockagemap() \
+		PyBeamBlockageMap_API = (void **)PyCapsule_Import(PyBeamBlockageMap_CAPSULE_NAME, 1);
 
 #endif
 

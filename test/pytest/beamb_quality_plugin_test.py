@@ -70,15 +70,15 @@ class beamb_quality_plugin_test(unittest.TestCase):
   def testNew(self):
     a = beamb_quality_plugin.beamb_quality_plugin()
     self.assertTrue(isinstance(a, rave_quality_plugin.rave_quality_plugin))
-    self.assertEquals(None, a._cachedir)
-    self.assertEquals(None, a._topodir)
-    self.assertEquals(beamb_quality_plugin.BEAMBLOCKAGE_DBLIMIT, a._dblimit)
+    self.assertEqual(None, a._cachedir)
+    self.assertEqual(None, a._topodir)
+    self.assertEqual(beamb_quality_plugin.BEAMBLOCKAGE_DBLIMIT, a._dblimit)
     
   def test_getQualityFields(self):
     a = beamb_quality_plugin.beamb_quality_plugin()
     result = a.getQualityFields()
-    self.assertEquals(1, len(result))
-    self.assertEquals("se.smhi.detector.beamblockage", result[0])
+    self.assertEqual(1, len(result))
+    self.assertEqual("se.smhi.detector.beamblockage", result[0])
 
   def test_create_bb_default(self):
     a = beamb_quality_plugin.beamb_quality_plugin()
@@ -90,21 +90,21 @@ class beamb_quality_plugin_test(unittest.TestCase):
     a = beamb_quality_plugin.beamb_quality_plugin()
     a._cachedir="/tmp"
     result = a._create_bb()
-    self.assertEquals("/tmp", result.cachedir)
+    self.assertEqual("/tmp", result.cachedir)
 
   def test_create_bb_modified_topo(self):
     a = beamb_quality_plugin.beamb_quality_plugin()
     a._topodir="../../data/gtopo30"
     result = a._create_bb()
-    self.assertEquals("../../data/gtopo30", result.topo30dir)
+    self.assertEqual("../../data/gtopo30", result.topo30dir)
 
   def test_create_bb_modified_dirs(self):
     a = beamb_quality_plugin.beamb_quality_plugin()
     a._cachedir="/tmp"
     a._topodir="../../data/gtopo30"
     result = a._create_bb()
-    self.assertEquals("/tmp", result.cachedir)
-    self.assertEquals("../../data/gtopo30", result.topo30dir)
+    self.assertEqual("/tmp", result.cachedir)
+    self.assertEqual("../../data/gtopo30", result.topo30dir)
 
 
   def test_process_scan(self):
@@ -209,7 +209,7 @@ class beamb_quality_plugin_test(unittest.TestCase):
       scan = volume.getScan(i)
       fields2.append(scan.getQualityFieldByHowTask("se.smhi.detector.beamblockage"))
     
-    self.assertEquals(len(fields), len(fields2))
+    self.assertEqual(len(fields), len(fields2))
     for i in range(len(fields)):
       self.assertTrue(fields[i] != fields2[i])
 
@@ -233,7 +233,7 @@ class beamb_quality_plugin_test(unittest.TestCase):
       scan = volume.getScan(i)
       fields2.append(scan.getQualityFieldByHowTask("se.smhi.detector.beamblockage"))
     
-    self.assertEquals(len(fields), len(fields2))
+    self.assertEqual(len(fields), len(fields2))
     for i in range(len(fields)):
       self.assertTrue(fields[i] == fields2[i])
     
