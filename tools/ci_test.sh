@@ -11,7 +11,7 @@
 #
 # History:  2011-08-20 Created by Anders Henja
 ############################################################
-SCRFILE=`python -c "import os;print os.path.abspath(\"$0\")"`
+SCRFILE=`python -c "import os;print(os.path.abspath(\"$0\"))"`
 SCRIPTPATH=`dirname "$SCRFILE"`
 
 "$SCRIPTPATH/run_python_script.sh" "${SCRIPTPATH}/../test/pytest/BeambXmlTestSuite.py" "${SCRIPTPATH}/../test/pytest"
