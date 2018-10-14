@@ -26,8 +26,8 @@
 
 .PHONY=install
 install:
-	@mkdir -p ${prefix}/bin/
-	@cp -v -f beamb ${prefix}/bin/
+	@mkdir -p ${DESTDIR}${prefix}/bin/
+	@cp -v -f beamb ${DESTDIR}${prefix}/bin/
 
 .PHONY=clean
 clean:

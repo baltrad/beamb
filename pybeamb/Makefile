@@ -74,12 +74,13 @@ $(BBTOPOGRAPHY_TARGET): $(DEPDIR) $(BBTOPOGRAPHY_OBJECTS) ../lib/libbeamb.so
 	
 .PHONY=install
 install:
-	@mkdir -p "${prefix}/share/beamb/pybeamb"
-	@cp -v -f $(BEAMBLOCKAGE_TARGET) "${prefix}/share/beamb/pybeamb/"
-	@cp -v -f $(BEAMBLOCKAGEMAP_TARGET) "${prefix}/share/beamb/pybeamb/"
-	@cp -v -f $(BBTOPOGRAPHY_TARGET) "${prefix}/share/beamb/pybeamb/"
-	@cp -v -f *.py "${prefix}/share/beamb/pybeamb/"
-	@-echo "$(prefix)/share/beamb/pybeamb" > "$(SITEPACK_PYTHON)/pybeamb.pth"
+	@mkdir -p "${DESTDIR}${prefix}/share/beamb/pybeamb"
+	@cp -v -f $(BEAMBLOCKAGE_TARGET) "${DESTDIR}${prefix}/share/beamb/pybeamb/"
+	@cp -v -f $(BEAMBLOCKAGEMAP_TARGET) "${DESTDIR}${prefix}/share/beamb/pybeamb/"
+	@cp -v -f $(BBTOPOGRAPHY_TARGET) "${DESTDIR}${prefix}/share/beamb/pybeamb/"
+	@cp -v -f *.py "${DESTDIR}${prefix}/share/beamb/pybeamb/"
+	@mkdir -p "${DESTDIR}${SITEPACK_PYTHON}"
+	@-echo "$(prefix)/share/beamb/pybeamb" > "${DESTDIR}$(SITEPACK_PYTHON)/pybeamb.pth"
 
 .PHONY=clean
 clean:

@@ -35,8 +35,8 @@ gtopo30: gtopo30.tgz
  
 .PHONY=install
 install: gtopo30
-	@mkdir -p ${prefix}/share/beamb/data/gtopo30
-	@cp -f gtopo30/*.* ${prefix}/share/beamb/data/gtopo30/
+	@mkdir -p ${DESTDIR}${prefix}/share/beamb/data/gtopo30
+	@cp -f gtopo30/*.* ${DESTDIR}${prefix}/share/beamb/data/gtopo30/
 		
 .PHONY=clean
 clean:
