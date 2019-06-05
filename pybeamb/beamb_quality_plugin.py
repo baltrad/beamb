@@ -40,7 +40,14 @@ logger = rave_pgf_logger.create_logger()
 # The limit of the Gaussian approximation of main lobe
 #
 BEAMBLOCKAGE_DBLIMIT=-6.0
-BEAMBLOCKAGE_BBLIMIT= 1.1
+
+##
+# The threshold for correcting beamblockage, must be between 0.0 and 1.0, if set to 1.0,
+# no masking with nodata will be done i.e correction will be done for all blockage up to 1.0
+# with 1.0 excluded due to that the underlying C-code cannot deal with 1.0 (division by zero). An attempt to set
+# the parameter smaller than 0.0 or larger than 1.0 will cause the restore function to abort.
+#
+BEAMBLOCKAGE_BBLIMIT= 1.0 
 
 ##
 # The beam blockage quality plugin
@@ -64,8 +71,7 @@ class beamb_quality_plugin(rave_quality_plugin):
   _dblimit = BEAMBLOCKAGE_DBLIMIT
 
   ##
-  # The default percent beam blockage (divided by 100). Defaults to BEAMBLOCKAGE_BBLIMIT which 
-  # is set to 110% so that no radar data will be masked to NODATA.
+  # The default percent beam blockage (divided by 100). Defaults to BEAMBLOCKAGE_BBLIMIT.
   #
   _bblimit = BEAMBLOCKAGE_BBLIMIT
     

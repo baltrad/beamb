@@ -23,6 +23,9 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author Anders Henja (SMHI, refactored to work together with rave)
  * @date 2011-11-10
+ *
+ * @author Ulf E. Nordh (SMHI, removal of bugs in fkns computeGroundRange and restore)
+ * @date 2019-05-22 
  */
 #include "beamblockage.h"
 #include "beamblockagemap.h"
@@ -126,6 +129,7 @@ static double* BeamBlockageInternal_computeGroundRange(BeamBlockage_t* self, Pol
   navigator = PolarScan_getNavigator(scan);
   nbins = PolarScan_getNbins(scan);
   rscale = PolarScan_getRscale(scan);
+  elangle = PolarScan_getElangle(scan);
 
   ranges = RAVE_MALLOC(sizeof(double) * nbins);
   if (ranges == NULL) {
@@ -572,11 +576,13 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
       }
       bbval = -1.0/2.0 * sqrt(M_PI * c) * (erf((elangle - elBlock)/sqrt(c)) - erf(elLim/sqrt(c)))/bb_tot;
 
+      /* Discard non-physical values for blockage */
       if (bbval < 0.0) {
         bbval = 0.0;
       } else if (bbval > 1.0) {
         bbval = 1.0;
       }
+
       /* ODIM's rule for representing quality is that 0=lowest, 1=highest quality. Therefore invert. */
       bbval = ((1.0-bbval) - offset) / gain;
       RaveField_setValue(field, bi, ri, bbval);
@@ -607,8 +613,8 @@ int BeamBlockage_restore(PolarScan_t* scan, RaveField_t* blockage, const char* q
   PolarScanParam_t* parameter = NULL;
   double gain, offset, nodata;
   long ri, bi, nrays, nbins;
-  double bbgain, bboffset;
-  double iv, ov, bbraw, bbpercent, bbdbz, dbz;
+  double bbgain, bboffset, bbraw;
+  double dbz_uncorr, dbz_corr, dbz_corr_raw, bbpercent, bb_corr_db, bb_corr_lin;
   RaveValueType rvt;
 
   if (scan == NULL || blockage == NULL) {
@@ -642,26 +648,50 @@ int BeamBlockage_restore(PolarScan_t* scan, RaveField_t* blockage, const char* q
     goto done;
   }
 
+  /* Exits if the user failed to set the threshold between 0.0 and 1.0 */
+  if (threshold < 0.0 || threshold > 1.0) {
+    RAVE_ERROR0("A blockage threshold smaller than 0.0 or larger than 1.0 is set in the calling script, correct and retry");
+    goto done;
+  }
+
   for (ri = 0; ri < nrays; ri++) {
     for (bi = 0; bi < nbins; bi++) {
-      rvt = PolarScanParam_getConvertedValue(parameter, bi, ri, &iv);
-      if ((rvt == RaveValueType_DATA) || (rvt == RaveValueType_UNDETECT)) {
+
+      /* The function below does two things, 1) checks the data type of the matrix element, and 2) converts from raw to dbz */
+      /* Returns in variable rvt and the variable dbz_uncorr */
+      rvt = PolarScanParam_getConvertedValue(parameter, bi, ri, &dbz_uncorr);
+
+      if ((rvt == RaveValueType_DATA) || (rvt == RaveValueType_UNDETECT)) { /* Ignore nodata matrix elements */
         RaveField_getValue(blockage, bi, ri, &bbraw);
+
         /* ODIM's rule for representing quality is that 0=lowest, 1=highest quality. Therefore revert. */
         bbpercent = 1.0 - (bbgain * bbraw + bboffset);
+
+        /* Discard non-physical values */
         if (bbpercent < 0.0 || bbpercent > 1.0) {
           RAVE_ERROR0("beamb values are out of bounds, check scaling");
           goto done;
         }
-        if ((bbpercent < threshold) && (rvt == RaveValueType_DATA)) {
-          bbdbz = 10 * (log10(1.0/(pow(1.0-bbpercent,2)))); /* Two-way correction */
-          dbz = iv + bbdbz;  /* This is the corrected reflectivity */
-          ov = round((dbz - offset) / gain);
 
-/*           if (ov > nodata - 1) */ /* Risky to use and not to use... */
-/*             ov = nodata - 1; */
-          PolarScanParam_setValue(parameter, bi, ri, ov);
-        } else if (bbpercent >= threshold) {
+        /* Adjust the reflectivity IF we have blockage and IF it is smaller than the selected threshold AND we are dealing with data */
+        if ((bbpercent > 0.0) && (bbpercent <= threshold) && (bbpercent != 1.0) && (rvt == RaveValueType_DATA)) {
+
+          bb_corr_lin = 1.0 / (pow(1.0-bbpercent,2)); /* Two-way blockage multiplicative correction in linear representation */
+          bb_corr_db = 10.0 * log10(bb_corr_lin); /* Two-way blockage multiplicative correction in dB */
+
+          dbz_corr = dbz_uncorr + bb_corr_db;  /* In the "dB-regime" we use addition for the multiplicative correction */
+          dbz_corr_raw = round((dbz_corr - offset) / gain); /* Converting to raw format */
+
+          /* if (dbz_corr_raw > nodata - 1)  Brute force used to in worst case keep the corrected data within 8-bit,perhaps risky to use 
+          {
+             dbz_corr_raw = nodata - 1;
+          } */
+
+          PolarScanParam_setValue(parameter, bi, ri, dbz_corr_raw);
+
+        /* If the blockage is larger than the selected threshold, mask with nodata, this is valid for both data and undetect */
+        /* By doing like this we give adjacent radars the opportunity to fill in these pixels */
+        } else if (bbpercent > threshold) {
           PolarScanParam_setValue(parameter, bi, ri, nodata);  /* Uncorrectable */
         }
       }
