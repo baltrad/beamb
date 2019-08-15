@@ -37,7 +37,7 @@ BEAMBLOCKAGE_DBLIMIT = -6.0
 # with 1.0 excluded due to that the underlying C-code cannot deal with 1.0 (division by zero). An attempt to set
 # the parameter smaller than 0.0 or larger than 1.0 will cause the restore function to abort.
 #
-BEAMBLOCKAGE_BBLIMIT = 0.7
+BEAMBLOCKAGE_BBLIMIT = 1.0
 
 
 if __name__ == "__main__":
