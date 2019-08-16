@@ -34,20 +34,15 @@ import _polarscan
 import _polarvolume
 import _beamblockage
 
+# The plugin needs to have access to the two parameters below, stated in beamb_defines.py. Earlier
+# these parameters were given directly in the plugin but for convenience reasons e.g. when using 
+# other than default values and e.g. making re-installations it is better to have the parameters
+# specified in a separate file. If the data in beamb_defines.py is not changed, the plugin will
+# run with the default parameters which are BEAMBLOCKAGE_DBLIMIT = -6.0 and
+# BEAMBLOCKAGE_BBLIMIT = 1.0, the latter means that no masking with nodata will be done.
+from beamb_defines import BEAMBLOCKAGE_DBLIMIT, BEAMBLOCKAGE_BBLIMIT 
+
 logger = rave_pgf_logger.create_logger()
-
-##
-# The limit of the Gaussian approximation of main lobe
-#
-BEAMBLOCKAGE_DBLIMIT=-6.0
-
-##
-# The threshold for correcting beamblockage, must be between 0.0 and 1.0, if set to 1.0,
-# no masking with nodata will be done i.e correction will be done for all blockage up to 1.0
-# with 1.0 excluded due to that the underlying C-code cannot deal with 1.0 (division by zero). An attempt to set
-# the parameter smaller than 0.0 or larger than 1.0 will cause the restore function to abort.
-#
-BEAMBLOCKAGE_BBLIMIT= 1.0 
 
 ##
 # The beam blockage quality plugin
@@ -66,12 +61,12 @@ class beamb_quality_plugin(rave_quality_plugin):
   _cachedir = None
   
   ##
-  # The default beam blockage Gaussian approximation main lobe. Defaults to BEAMBLOCKAGE_DBLIMIT
+  # The default beam blockage Gaussian approximation main lobe. Defaults to -6.0 if not changed in beamb_defines.py.
   #
   _dblimit = BEAMBLOCKAGE_DBLIMIT
 
   ##
-  # The default percent beam blockage (divided by 100). Defaults to BEAMBLOCKAGE_BBLIMIT.
+  # The default percent beam blockage (divided by 100). Defaults 1.0 if not changed in beamb_defines.py.
   #
   _bblimit = BEAMBLOCKAGE_BBLIMIT
     
