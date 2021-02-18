@@ -36,7 +36,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #include "hlhdf.h"
 #include "odim_io_utilities.h"
-
+#include "lazy_nodelist_reader.h"
 /**
  * Represents the beam blockage algorithm
  */
@@ -316,7 +316,7 @@ done:
 static RaveField_t* BeamBlockageInternal_getCachedFile(BeamBlockage_t* self, PolarScan_t* scan, double dblim)
 {
   RaveField_t* result = NULL;
-  HL_NodeList* nodelist = NULL;
+  LazyNodeListReader_t* nodelist = NULL;
 
   RAVE_ASSERT((self != NULL), "self == NULL");
   RAVE_ASSERT((scan != NULL), "scan == NULL");
@@ -328,23 +328,17 @@ static RaveField_t* BeamBlockageInternal_getCachedFile(BeamBlockage_t* self, Pol
     }
 
     if(HL_isHDF5File(filename)) {
-      nodelist =  HLNodeList_read(filename);
+      nodelist =  LazyNodeListReader_readPreloaded(filename);
       if (nodelist == NULL) {
         RAVE_ERROR1("Failed to read hdf5 file %s", filename);
         goto done;
       }
-      HLNodeList_selectAllNodes(nodelist);
-      if (!HLNodeList_fetchMarkedNodes(nodelist)) {
-        RAVE_ERROR1("Failed to load hdf5 file '%s'", filename);
-        goto done;
-      }
-
       result = OdimIoUtilities_loadField(nodelist, "/beamb_field");
     }
   }
 
 done:
-  HLNodeList_free(nodelist);
+  RAVE_OBJECT_RELEASE(nodelist);
   return result;
 }
 
