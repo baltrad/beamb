@@ -196,7 +196,7 @@ static PyObject* _pybeamblockagemap_getTopographyForScan(PyBeamBlockageMap* self
  */
 static struct PyMethodDef _pybeamblockagemap_methods[] =
 {
-  {"topo30dir", NULL},
+  {"topo30dir", NULL, METH_VARARGS},
   {"readTopography", (PyCFunction)_pybeamblockagemap_readTopography, 1},
   {"getTopographyForScan", (PyCFunction)_pybeamblockagemap_getTopographyForScan, 1},
   {NULL, NULL} /* sentinel */

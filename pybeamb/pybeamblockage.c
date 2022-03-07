@@ -209,9 +209,9 @@ static PyObject* _pybeamblockage_getBlockage(PyBeamBlockage* self, PyObject* arg
  */
 static struct PyMethodDef _pybeamblockage_methods[] =
 {
-  {"topo30dir", NULL},
-  {"cachedir", NULL},
-  {"rewritecache", NULL},
+  {"topo30dir", NULL, METH_VARARGS},
+  {"cachedir", NULL, METH_VARARGS},
+  {"rewritecache", NULL, METH_VARARGS},
   {"getBlockage", (PyCFunction)_pybeamblockage_getBlockage, 1},
   {NULL, NULL} /* sentinel */
 };

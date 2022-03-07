@@ -312,13 +312,13 @@ done:
  */
 static struct PyMethodDef _pybbtopography_methods[] =
 {
-  {"nodata", NULL},
-  {"ulxmap", NULL},
-  {"ulymap", NULL},
-  {"xdim", NULL},
-  {"ydim", NULL},
-  {"ncols", NULL, 1},
-  {"nrows", NULL, 1},
+  {"nodata", NULL, METH_VARARGS},
+  {"ulxmap", NULL, METH_VARARGS},
+  {"ulymap", NULL, METH_VARARGS},
+  {"xdim", NULL, METH_VARARGS},
+  {"ydim", NULL, METH_VARARGS},
+  {"ncols", NULL, METH_VARARGS},
+  {"nrows", NULL, METH_VARARGS},
   {"getValue", (PyCFunction)_pybbtopography_getValue, 1},
   {"setValue", (PyCFunction)_pybbtopography_setValue, 1},
   {"setData", (PyCFunction)_pybbtopography_setData, 1},
