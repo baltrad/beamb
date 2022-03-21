@@ -333,7 +333,7 @@ static RaveField_t* BeamBlockageInternal_getCachedFile(BeamBlockage_t* self, Pol
         RAVE_ERROR1("Failed to read hdf5 file %s", filename);
         goto done;
       }
-      result = OdimIoUtilities_loadField(nodelist, "/beamb_field");
+      result = OdimIoUtilities_loadField(nodelist, RaveIO_ODIM_Version_2_4, "/beamb_field");
     }
   }
 
@@ -384,7 +384,7 @@ static int BeamBlockageInternal_writeCachedFile(BeamBlockage_t* self, PolarScan_
     property->istore_k = (long)1;
     property->meta_block_size = (long)0;
 
-    result = OdimIoUtilities_addRaveField(field, nodelist, "/beamb_field");
+    result = OdimIoUtilities_addRaveField(field, nodelist, RaveIO_ODIM_Version_2_4, "/beamb_field");
     if (result == 1) {
       result = HLNodeList_setFileName(nodelist, filename);
     }
