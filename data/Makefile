@@ -29,8 +29,11 @@
 .PHONY=all
 all: gtopo30
 
-gtopo30: gtopo30.tgz
-	@tar -xvzf gtopo30.tgz
+gtopo30: gtopo30_*.tgz
+	@tar -xvzf gtopo30_E020N40.tgz
+	@tar -xvzf gtopo30_E020N90.tgz
+	@tar -xvzf gtopo30_W020N40.tgz
+	@tar -xvzf gtopo30_W020N90.tgz
 	@touch gtopo30
  
 .PHONY=install
