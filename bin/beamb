@@ -36,7 +36,7 @@ from Proj import rd
 # @param options input options from the command line
 # @return the same SCAN
 def process_scan(scan, options):
-    if scan.elangle*rd < options.elevation:
+    if ((scan.elangle*rd < options.elevation) and ('DBZH' in scan.getParameterNames())):
         bb = _beamblockage.new()
         result = bb.getBlockage(scan, options.beamwidth)
         restored = _beamblockage.restore(scan, result, options.quantity, options.restore)
