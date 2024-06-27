@@ -22,6 +22,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
  * @author Anders Henja (Swedish Meteorological and Hydrological Institute, SMHI)
  * @date 2011-11-16
  */
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include "pybeamb_compat.h"
 #include "Python.h"
 #include <math.h>
@@ -237,7 +238,7 @@ static PyObject* _pybbtopography_getData(PyBBTopography* self, PyObject* args)
     raiseException_returnNULL(PyExc_IOError, "topography does not have any data");
   }
 
-  if (arrtype == PyArray_NOTYPE) {
+  if (arrtype == NPY_NOTYPE) {
     raiseException_returnNULL(PyExc_IOError, "Could not translate data type");
   }
   result = PyArray_SimpleNew(2, dims, arrtype);
@@ -245,8 +246,8 @@ static PyObject* _pybbtopography_getData(PyBBTopography* self, PyObject* args)
     raiseException_returnNULL(PyExc_MemoryError, "Could not create resulting array");
   }
   if (result != NULL) {
-    int nbytes = ncols*nrows*PyArray_ITEMSIZE(result);
-    memcpy(((PyArrayObject*)result)->data, (unsigned char*)BBTopography_getData(self->topo), nbytes);
+    int nbytes = ncols*nrows*PyArray_ITEMSIZE((PyArrayObject*)result);
+    memcpy(PyArray_DATA((PyArrayObject*)result), (unsigned char*)BBTopography_getData(self->topo), nbytes);
   }
   return result;
 }
