@@ -22,6 +22,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
  * @author Anders Henja (Swedish Meteorological and Hydrological Institute, SMHI)
  * @date 2011-11-16
  */
+
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include "pybeamb_compat.h"
 #include "Python.h"
@@ -176,6 +177,23 @@ static PyObject* _pybbtopography_setValue(PyBBTopography* self, PyObject* args)
   Py_RETURN_NONE;
 }
 
+static PyObject* _pybbtopography_getValueAtLonLat(PyBBTopography* self, PyObject* args)
+{
+  double lon = 0, lat = 0;
+  double value = 0.0;
+  if (!PyArg_ParseTuple(args, "dd", &lon, &lat)) {
+    return NULL;
+  }
+
+  if (!BBTopography_getValueAtLonLat(self->topo, lon, lat, &value)) {
+    raiseException_returnNULL(PyExc_ValueError, "Failed to read topo at lon/lat");
+    return NULL;
+  }
+  return PyFloat_FromDouble(value);
+}
+
+
+
 static PyObject* _pybbtopography_setData(PyBBTopography* self, PyObject* args)
 {
   PyObject* inarray = NULL;
@@ -322,6 +340,12 @@ static struct PyMethodDef _pybbtopography_methods[] =
   {"nrows", NULL, METH_VARARGS},
   {"getValue", (PyCFunction)_pybbtopography_getValue, 1},
   {"setValue", (PyCFunction)_pybbtopography_setValue, 1},
+  {"getValueAtLonLat", (PyCFunction)_pybbtopography_getValueAtLonLat, 1,
+    "getValueAtLonLat(lon,lat) -> height in meters\n\n"
+    "Returns the height at the specified height.\n\n"
+    "lon - longitude in radians.\n"
+    "lat - latitude in radians."
+  },
   {"setData", (PyCFunction)_pybbtopography_setData, 1},
   {"getData", (PyCFunction)_pybbtopography_getData, 1},
   {"concatx", (PyCFunction)_pybbtopography_concatx, 1},
