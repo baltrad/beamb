@@ -33,7 +33,11 @@ import _polarvolume
 import _beamblockage
 from Proj import rd
 
+
+# Default definitions
 BEAMBLOCKAGE_BBLIMIT = 0.7
+BEAMBLOCKAGE_MAXELEV = 2.0
+BEAMBLOCKAGE_QUANTITY = "DBZH"
 
 
 # -----------------------------------------------------------------------------
@@ -100,11 +104,11 @@ if __name__ == "__main__":
                            "Defaults to %default. Values needs to be between 0.0 and 1.0, otherwise the code will fail to restore. "
                            "To avoid having masking with nodata, the threshold shall be set to 1.0")
 
-    parser.add_option("-q", "--quantity", dest="quantity", default="DBZH",
-                      help="Specifies the quantity to work with, default 'DBZH'.")
+    parser.add_option("-q", "--quantity", dest="quantity", default=BEAMBLOCKAGE_QUANTITY,
+                      help="Specifies the quantity to work with, default %default.")
 
-    parser.add_option("-e", "--max-elev", dest="elevation", default=2.0, type="float",
-                      help="Specifies the elevation angle under which data are processed. Defaults to 2.0 degrees.")
+    parser.add_option("-e", "--max-elev", dest="elevation", default=BEAMBLOCKAGE_MAXELEV, type="float",
+                      help="Specifies the elevation angle under which data are processed. Defaults to %default degrees.")
 
     (options, args) = parser.parse_args()
 
