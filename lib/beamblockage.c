@@ -37,6 +37,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 #include "hlhdf.h"
 #include "odim_io_utilities.h"
 #include "lazy_nodelist_reader.h"
+#include "rave_field.h"
 /**
  * Represents the beam blockage algorithm
  */
@@ -231,7 +232,7 @@ done:
   return result;
 }
 
-static int BeamBlockageInternal_addMetaInformation(RaveField_t* field, double gain, double offset)
+static int BeamBlockageInternal_addMetaInformation(RaveField_t* field, double gain, double offset, double dbLimit)
 {
   RaveAttribute_t* attribute = NULL;
   int result = 0;
@@ -253,6 +254,13 @@ static int BeamBlockageInternal_addMetaInformation(RaveField_t* field, double ga
   attribute = RaveAttributeHelp_createDouble("what/offset", offset);
   if (attribute == NULL || !RaveField_addAttribute(field, attribute)) {
     RAVE_ERROR0("Failed to add what/offset");
+    goto done;
+  }
+  RAVE_OBJECT_RELEASE(attribute);
+
+  attribute = RaveAttributeHelp_createStringFmt("how/task_args", "DBLIMIT:%g", dbLimit);
+  if (attribute == NULL || !RaveField_addAttribute(field, attribute)) {
+    RAVE_ERROR0("Failed to add how/task_args");
     goto done;
   }
   RAVE_OBJECT_RELEASE(attribute);
@@ -583,7 +591,7 @@ RaveField_t* BeamBlockage_getBlockage(BeamBlockage_t* self, PolarScan_t* scan, d
     }
   }
 
-  if (!BeamBlockageInternal_addMetaInformation(field, gain, offset)) {
+  if (!BeamBlockageInternal_addMetaInformation(field, gain, offset, dBlim)) {
     goto done;
   }
 
@@ -610,6 +618,7 @@ int BeamBlockage_restore(PolarScan_t* scan, RaveField_t* blockage, const char* q
   double bbgain, bboffset, bbraw;
   double dbz_uncorr, dbz_corr, dbz_corr_raw, bbpercent, bb_corr_db, bb_corr_lin;
   RaveValueType rvt;
+  RaveAttribute_t* attr = NULL;
 
   if (scan == NULL || blockage == NULL) {
     RAVE_ERROR0("Need to provide both scan and field containing blockage.");
@@ -646,6 +655,32 @@ int BeamBlockage_restore(PolarScan_t* scan, RaveField_t* blockage, const char* q
   if (threshold < 0.0 || threshold > 1.0) {
     RAVE_ERROR0("A blockage threshold smaller than 0.0 or larger than 1.0 is set in the calling script, correct and retry");
     goto done;
+  }
+
+  attr = RaveField_getAttribute(blockage, "how/task_args");
+  if (attr == NULL) {
+    attr = RaveAttributeHelp_createStringFmt("how/task_args", "BBLIMIT:%g", threshold);
+    if (attr == NULL) {
+      RAVE_ERROR0("Failed to create how/task_args for BBLIMIT");
+      goto done;
+    }
+    if (!RaveField_addAttribute(blockage, attr)) {
+      RAVE_ERROR0("Failed to add attribute how/task_args to field");
+      goto done;
+    }
+  } else {
+    char buff[4096];
+    char* value = NULL;
+    RaveAttribute_getString(attr, &value);
+    if (value != NULL && strlen(value) > 0) {
+      snprintf(buff, 4096, "%s,BBLIMIT:%g",value, threshold);
+    } else {
+      snprintf(buff, 4096, "BBLIMIT:%g", threshold);
+    }
+    if (!RaveAttribute_setString(attr, buff)) {
+      RAVE_ERROR0("Failed to set attribute string");
+      goto done;
+    }
   }
 
   for (ri = 0; ri < nrays; ri++) {
@@ -694,6 +729,7 @@ int BeamBlockage_restore(PolarScan_t* scan, RaveField_t* blockage, const char* q
 
   result = 1;
 done:
+  RAVE_OBJECT_RELEASE(attr);
   RAVE_OBJECT_RELEASE(parameter);
   return result;
 }
