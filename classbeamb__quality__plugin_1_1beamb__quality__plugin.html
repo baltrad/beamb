@@ -60,6 +60,7 @@ $(function(){ initResizable(false); });
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
+<a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="#pro-static-attribs">Static Protected Attributes</a> &#124;
 <a href="classbeamb__quality__plugin_1_1beamb__quality__plugin-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">beamb_quality_plugin.beamb_quality_plugin Class Reference</div></div>
@@ -91,6 +92,12 @@ Protected Member Functions</h2></td></tr>
 <tr class="memdesc:a8eee8788d68f3baf9b253bfe87af9b04"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a beam blockage instance.  <br /></td></tr>
 <tr class="separator:a8eee8788d68f3baf9b253bfe87af9b04"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
+Protected Attributes</h2></td></tr>
+<tr class="memitem:aaad2b652c0cd7c3f413638f839eb44ca" id="r_aaad2b652c0cd7c3f413638f839eb44ca"><td class="memItemLeft" align="right" valign="top"><a id="aaad2b652c0cd7c3f413638f839eb44ca" name="aaad2b652c0cd7c3f413638f839eb44ca"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>_beamboptions</b> = <a class="el" href="classbeamb__options_1_1beamb__options.html">beamb_options.beamb_options</a>()</td></tr>
+<tr class="separator:aaad2b652c0cd7c3f413638f839eb44ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-static-attribs" name="pro-static-attribs"></a>
 Static Protected Attributes</h2></td></tr>
 <tr class="memitem:a1968f77df8b75b42c2157d569f0ef54a" id="r_a1968f77df8b75b42c2157d569f0ef54a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1968f77df8b75b42c2157d569f0ef54a">_topodir</a> = None</td></tr>
@@ -99,12 +106,6 @@ Static Protected Attributes</h2></td></tr>
 <tr class="memitem:ab1c1c55cc88881606e93e90f0d743946" id="r_ab1c1c55cc88881606e93e90f0d743946"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab1c1c55cc88881606e93e90f0d743946">_cachedir</a> = None</td></tr>
 <tr class="memdesc:ab1c1c55cc88881606e93e90f0d743946"><td class="mdescLeft">&#160;</td><td class="mdescRight">The cachedir.  <br /></td></tr>
 <tr class="separator:ab1c1c55cc88881606e93e90f0d743946"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab76ec9c0bdc424a76e8058adc1c621c3" id="r_ab76ec9c0bdc424a76e8058adc1c621c3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab76ec9c0bdc424a76e8058adc1c621c3">_dblimit</a> = BEAMBLOCKAGE_DBLIMIT</td></tr>
-<tr class="memdesc:ab76ec9c0bdc424a76e8058adc1c621c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default beam blockage Gaussian approximation main lobe.  <br /></td></tr>
-<tr class="separator:ab76ec9c0bdc424a76e8058adc1c621c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad5c1162e71354f308f40c99169da5d27" id="r_ad5c1162e71354f308f40c99169da5d27"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad5c1162e71354f308f40c99169da5d27">_bblimit</a> = BEAMBLOCKAGE_BBLIMIT</td></tr>
-<tr class="memdesc:ad5c1162e71354f308f40c99169da5d27"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default percent beam blockage (divided by 100).  <br /></td></tr>
-<tr class="separator:ad5c1162e71354f308f40c99169da5d27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The beam blockage quality plugin. </p>
@@ -220,31 +221,6 @@ Static Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="ad5c1162e71354f308f40c99169da5d27" name="ad5c1162e71354f308f40c99169da5d27"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad5c1162e71354f308f40c99169da5d27">&#9670;&#160;</a></span>_bblimit</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">beamb_quality_plugin.beamb_quality_plugin._bblimit = BEAMBLOCKAGE_BBLIMIT</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>The default percent beam blockage (divided by 100). </p>
-<p>Defaults 1.0 if not changed in <a class="el" href="beamb__defines_8py.html" title="Contains some parameters used by beamb_quality_plugin.py.">beamb_defines.py</a>. </p>
-
-</div>
-</div>
 <a id="ab1c1c55cc88881606e93e90f0d743946" name="ab1c1c55cc88881606e93e90f0d743946"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab1c1c55cc88881606e93e90f0d743946">&#9670;&#160;</a></span>_cachedir</h2>
 
@@ -267,31 +243,6 @@ Static Protected Attributes</h2></td></tr>
 
 <p>The cachedir. </p>
 <p>If not set, then default values will be used. </p>
-
-</div>
-</div>
-<a id="ab76ec9c0bdc424a76e8058adc1c621c3" name="ab76ec9c0bdc424a76e8058adc1c621c3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab76ec9c0bdc424a76e8058adc1c621c3">&#9670;&#160;</a></span>_dblimit</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">beamb_quality_plugin.beamb_quality_plugin._dblimit = BEAMBLOCKAGE_DBLIMIT</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>The default beam blockage Gaussian approximation main lobe. </p>
-<p>Defaults to -6.0 if not changed in <a class="el" href="beamb__defines_8py.html" title="Contains some parameters used by beamb_quality_plugin.py.">beamb_defines.py</a>. </p>
 
 </div>
 </div>
