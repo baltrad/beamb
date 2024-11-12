@@ -28,7 +28,7 @@ from PyBeamBlockageTest import *
 from PyBeamBlockageMapTest import *
 from PyBBTopographyTest import *
 from beamb_quality_plugin_test import *
-
+from beamb_options_test import *
 
 if __name__ == "__main__":
   unittest.main()

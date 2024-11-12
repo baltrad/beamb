@@ -24,7 +24,15 @@ along with RAVE.  If not, see <http://www.gnu.org/licenses/>.
 ## @date 2019-06-10
 #
 # This file will be imported by beamb_quality_plugin.py.
+import os
 
+##
+# Get root folder for this installation.
+BEAMB_ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+##
+# The beamb options file. Default is located in beamb-root/config
+BEAMB_OPTIONS_FILE=f"{BEAMB_ROOT}/config/beamb_options.xml"
 
 ##
 # The limit of the Gaussian approximation of main lobe

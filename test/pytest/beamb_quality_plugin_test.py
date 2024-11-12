@@ -32,6 +32,9 @@ import rave_quality_plugin
 import os, string
 import _rave
 import numpy
+
+from unittest.mock import Mock, MagicMock, call
+
 from rave_quality_plugin import QUALITY_CONTROL_MODE_ANALYZE
 
 class beamb_quality_plugin_test(unittest.TestCase):
@@ -72,7 +75,6 @@ class beamb_quality_plugin_test(unittest.TestCase):
     self.assertTrue(isinstance(a, rave_quality_plugin.rave_quality_plugin))
     self.assertEqual(None, a._cachedir)
     self.assertEqual(None, a._topodir)
-    self.assertEqual(beamb_quality_plugin.BEAMBLOCKAGE_DBLIMIT, a._dblimit)
     
   def test_getQualityFields(self):
     a = beamb_quality_plugin.beamb_quality_plugin()
@@ -106,8 +108,7 @@ class beamb_quality_plugin_test(unittest.TestCase):
     self.assertEqual("/tmp", result.cachedir)
     self.assertEqual("../../data/gtopo30", result.topo30dir)
 
-
-  def test_process_scan(self):
+  def test_process_with_scan(self):
     classUnderTest = beamb_quality_plugin.beamb_quality_plugin()
     classUnderTest._cachedir="/tmp"
     classUnderTest._topodir="../../data/gtopo30"

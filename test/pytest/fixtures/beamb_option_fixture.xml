@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beamb-options>
+  <default dblimit="-6.0" bblimit="1.0" />
+  <seang dblimit="-6.0" bblimit="1.0" />
+  <sekkr dblimit="-7.0" bblimit="2.0" />
+</beamb-options>
+
