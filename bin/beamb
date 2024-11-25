@@ -27,6 +27,7 @@ along with RAVE.  If not, see <http://www.gnu.org/licenses/>.
 import _raveio
 import _polarvolume
 import _beamblockage
+from beamb_defines import BEAMBLOCKAGE_DBLIMIT, BEAMBLOCKAGE_BBLIMIT
 from Proj import rd
 
 
@@ -83,10 +84,10 @@ if __name__ == "__main__":
     parser.add_option("-o", "--output", dest="outfile",
                       help="Name of output file to write. If not given, input file will be over-written.")
 
-    parser.add_option("-b", "--beamwidth", dest="beamwidth", default=-6.0, type="float",
+    parser.add_option("-b", "--beamwidth", dest="beamwidth", default=BEAMBLOCKAGE_DBLIMIT, type="float",
                       help="Specifies the limit of the Gaussian approximation of the beamwidth (in dB) to apply when analyzing the degree of beam blockage. NOTE that this does not have to be the radar's half-power beamwidth. Defaults to -6.0 dB.")
 
-    parser.add_option("-r", "--restore", dest="restore", default=0.7, type="float",
+    parser.add_option("-r", "--restore", dest="restore", default=BEAMBLOCKAGE_BBLIMIT, type="float",
                       help="Specifies the upper threshold on how much beam blockage is accepted to be corrected. Sectors blocked more than this value are blocked out by assigning them the 'nodata' value. Defaults to 0.7 (70 %). Values needs to be between 0.0 and 1.0, otherwise the code will fail to restore. To avoid having masking with nodata, the threshold shall be set to 1.0")
     
     parser.add_option("-q", "--quantity", dest="quantity", default="DBZH",
