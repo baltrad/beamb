@@ -87,6 +87,22 @@ class PyBeamBlockageTest(unittest.TestCase):
     self.assertEqual(_rave.RaveDataType_UCHAR, result.datatype)
     self.assertAlmostEqual(0.0, result.getAttribute("what/offset"), 4)
     self.assertAlmostEqual(1/255.0, result.getAttribute("what/gain"), 4)
+    self.assertEqual("DBLIMIT:-20", result.getAttribute("how/task_args"))
+    self.assertEqual(scan.nbins, result.xsize)
+    self.assertEqual(scan.nrays, result.ysize)
+
+  def test_getBlockage_20_1(self):
+    a = _beamblockage.new()
+    a.topo30dir="../../data/gtopo30"
+    a.cachedir=None # No caching
+    scan = _raveio.open(self.SCAN_FILENAME).object
+    result = a.getBlockage(scan, -20.1);
+    self.assertFalse(os.path.isfile(self.CACHEFILE_1))
+
+    self.assertEqual(_rave.RaveDataType_UCHAR, result.datatype)
+    self.assertAlmostEqual(0.0, result.getAttribute("what/offset"), 4)
+    self.assertAlmostEqual(1/255.0, result.getAttribute("what/gain"), 4)
+    self.assertEqual("DBLIMIT:-20.1", result.getAttribute("how/task_args"))
     self.assertEqual(scan.nbins, result.xsize)
     self.assertEqual(scan.nrays, result.ysize)
 
@@ -173,8 +189,20 @@ class PyBeamBlockageTest(unittest.TestCase):
     a.rewritecache=True
     scan = _raveio.open(self.FIXTURE_2).object
     blockage = a.getBlockage(scan, -20.0);
+    self.assertEqual("DBLIMIT:-20", blockage.getAttribute("how/task_args"))
+    _beamblockage.restore(scan, blockage, "DBZH", 0.5)
+    self.assertEqual("DBLIMIT:-20,BBLIMIT:0.5", blockage.getAttribute("how/task_args"))
 
-    restored = _beamblockage.restore(scan, blockage, "DBZH", 0.5)
+  def test_restore_no_dblimit(self):
+    a = _beamblockage.new()
+    a.topo30dir="../../data/gtopo30"
+    a.cachedir="/tmp"
+    a.rewritecache=True
+    scan = _raveio.open(self.FIXTURE_2).object
+    blockage = a.getBlockage(scan, -20.0);
+    blockage.addAttribute("how/task_args", "")
+    _beamblockage.restore(scan, blockage, "DBZH", 0.5)
+    self.assertEqual("BBLIMIT:0.5", blockage.getAttribute("how/task_args"))
 
   def test_restore_proper_field(self):
     scan = _raveio.open(self.FIXTURE_2).object
@@ -184,7 +212,6 @@ class PyBeamBlockageTest(unittest.TestCase):
     field.addAttribute("how/task", "se.smhi.detector.beamblockage")
     field.addAttribute("what/gain", 1.0)
     field.addAttribute("what/offset", 0.0)
-        
     _beamblockage.restore(scan, field, "DBZH", 0.5)
     
   def test_restore_missing_howtask(self):

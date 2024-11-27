@@ -35,7 +35,6 @@ from Proj import rd
 
 
 # Default definitions
-BEAMBLOCKAGE_BBLIMIT = 0.7
 BEAMBLOCKAGE_MAXELEV = 2.0
 BEAMBLOCKAGE_QUANTITY = "DBZH"
 
