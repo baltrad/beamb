@@ -34,6 +34,8 @@ gtopo30: gtopo30_*.tgz
 	@tar -xvzf gtopo30_E020N90.tgz
 	@tar -xvzf gtopo30_W020N40.tgz
 	@tar -xvzf gtopo30_W020N90.tgz
+	@tar -xvzf gtopo30_W060N40.tgz
+	@tar -xvzf gtopo30_W060N90.tgz	
 	@touch gtopo30
  
 .PHONY=install
